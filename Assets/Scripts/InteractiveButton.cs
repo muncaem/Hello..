@@ -19,7 +19,7 @@ public class InteractiveButton : MonoBehaviour
     }
 
     // 이미지 생성 실행 버튼
-    void ActiveObject(GameObject obj)
+    public void ActiveObject(GameObject obj)
     {
         StartCoroutine(FadeIn(obj.GetComponent<Image>(), 0.5f, () => { }));
         obj.SetActive(true);
