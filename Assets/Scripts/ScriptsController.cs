@@ -49,4 +49,12 @@ public class ScriptsController : MonoBehaviour
             }
             ));
     }
+
+
+    // 종료 시, 델리게이트 해제
+    private void OnDestroy()
+    {
+        DiagnosisSystem.actionTakeCall -= NormalQuestionVoice;
+        DiagnosisSystem.actionUnTakeCall -= NormalQuestionText;
+    }
 }

@@ -2,6 +2,7 @@ using UnityEngine;
 using System.IO;
 using UnityEngine.Networking;
 using System.Collections;
+using System;
 
 public class MicRecorder : MonoBehaviour
 {
@@ -9,10 +10,12 @@ public class MicRecorder : MonoBehaviour
     private bool isRecording = false;
     private float silenceTimer = 0f;
     private const float silenceThreshold = 0.01f; // 감지 기준 볼륨
-    private const float maxSilenceTime = 3f;      // 침묵 지속 시간
+    private const float maxSilenceTime = 2f;      // 침묵 지속 시간
 
     private string micDevice;
     private int sampleWindow = 128;
+
+    public static Action<string> actionMicRecorded; // stt 변환 이후 대리자 호출
 
     [System.Serializable]
     public class SttResponse
@@ -111,6 +114,9 @@ public class MicRecorder : MonoBehaviour
                 string json = www.downloadHandler.text;
                 SttResponse res = JsonUtility.FromJson<SttResponse>(json);
                 Debug.Log("인식된 텍스트: " + res.text);
+
+                actionMicRecorded?.Invoke(res.text);
+                //OnUserSpeechRecognized(res.text);
             }
             else
             {
