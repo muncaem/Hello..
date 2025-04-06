@@ -14,6 +14,12 @@ public class GptRequester : MonoBehaviour
     /// Flask에서 실행 중인 서버의 주소
     private string apiUrl = "http://127.0.0.1:5000/generate";
 
+    [System.Serializable]
+    public class GPTResponse
+    {
+        public string reply; //json 파싱용
+    }
+
 
     // AI 전화 시작 함수
     /// 외부에서 호출할 함수 (프롬프트를 받아 코루틴 실행)
@@ -46,13 +52,15 @@ public class GptRequester : MonoBehaviour
         if (request.result == UnityWebRequest.Result.Success)
         {
             // 요청 성공: GPT 응답
-            string comment = request.downloadHandler.text;
+            string rawJson = request.downloadHandler.text;
+            GPTResponse res = JsonUtility.FromJson<GPTResponse>(rawJson); // json 변환
+
+            string comment = res.reply; // 변환한 응답
 
             // 종료 키워드 체크 및 매니저에게 델리게이트
             actionGptReceived?.Invoke(comment, AITalkEndCheck(comment));
 
-            jsonResponse res = JsonUtility.FromJson<jsonResponse>(comment);
-            Debug.Log("GPT 응답 받음: " + res.reply);
+            Debug.Log("GPT 응답 받음: " + comment);
         }
         else
         {
@@ -61,11 +69,6 @@ public class GptRequester : MonoBehaviour
         }
     }
 
-    [System.Serializable]
-    public class jsonResponse
-    {
-        public string reply;
-    }
 
 
     // AI 대화 종료 포인트 체크

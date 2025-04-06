@@ -4,6 +4,10 @@ using UnityEngine;
 
 public class PhoneScenarioMaker : MonoBehaviour
 {
+    public string role;
+    public string emotion;
+    public string scenario;
+
     // 프롬프트 전달용 시나리오 예시
     //List<string> scenarios = new List<string>
     //{
