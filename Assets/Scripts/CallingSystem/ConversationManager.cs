@@ -99,13 +99,13 @@ public class ConversationManager : MonoBehaviour
     // 시나리오 기반 목소리 지정
     public string DetermineVoiceFromScenario(string scenario)
     {
-        if (scenario.Contains("남성") || scenario.Contains("할아버지"))
-            return "ko-KR-Wavenet-C"; // 남성 음성
+        if (scenario.Contains("남성") || scenario.Contains("할아버지") || scenario.Contains("아빠") || scenario.Contains("남자"))
+            return "ko-KR-Neural2-C"/*"ko-KR-Chirp3-HD-Charon"*/; // 남성 음성 - chirp 계열은 음높이, 속도 조절 안됨..
 
-        if (scenario.Contains("여성") || scenario.Contains("할머니"))
-            return "ko-KR-Wavenet-A"; // 여성 음성
+        if (scenario.Contains("여성") || scenario.Contains("할머니") || scenario.Contains("엄마") || scenario.Contains("여자"))
+            return "ko-KR-Neural2-B"/*"ko-KR-Chirp3-HD-Zephyr"*/; // 여성 음성 - wavenet로 할지도 고민..
 
-        return "ko-KR-Wavenet-B"; // 기본값
+        return "ko-KR-Wavenet-D"/*"ko-KR-Neural2-B"*/; // 기본값
     }
 
 
