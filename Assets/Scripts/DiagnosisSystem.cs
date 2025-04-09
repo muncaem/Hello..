@@ -18,7 +18,8 @@ public class DiagnosisSystem : MonoBehaviour
     private string userDetermination;
     /// </summary>
 
-
+    // 초기 진단 확인용 bool값
+    private bool isFirstCheckEnded = false;
     // 기회 내 전화 받았는지 여부 체크 => 회피 요인 +1
     private bool isTakeCall = false;
     // 전화 받을 기회
@@ -40,6 +41,9 @@ public class DiagnosisSystem : MonoBehaviour
     [SerializeField] private string[] dialogs; // 다이얼로그
 
 
+    public static Action OnTakeCall; // 진단시스템으로부터 오는 전화를 받았을 경우 ConversationManager의 대화 시작
+
+
     private void Awake()
     {
         MikeOffImg = EmptyScreen.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>();
@@ -54,6 +58,7 @@ public class DiagnosisSystem : MonoBehaviour
         TTSChanger.actionTTSEnded += OnTTSEnded;
         MicRecorder.actionMicRecorded += OnRecordEnded;
     }
+    // 초기 진단 시작 버튼(게임 시작 버튼)
     public void StartDiagnosis()
     {
         //초기 전화 받기/거절 테스트
@@ -81,25 +86,109 @@ public class DiagnosisSystem : MonoBehaviour
 
 
 
-    // 전화 받기 버튼 눌렀을 경우, 스크립트 실행 및 마이크
+    // 전화 받기 버튼 눌렀을 경우,
     public void TakeCall()
     {
         SoundManager.instance.Clear();
         StopAllCoroutines();
         isTakeCall = true;
 
-        // 진단용 음성 대화
-        if (preUserDataReply == 0)
+        if (isFirstCheckEnded == false)
+            CheckForFirstData(); // 초기 진단용 음성 대화
+        else
+            OnTakeCall?.Invoke(); // 전화를 받았을 경우 실행되는 델리게이트
+    }
+
+    // 전화 끊기 버튼 / 나중에 보기 버튼 눌렀을 경우,
+    public void UnTakeCall()
+    {
+        SoundManager.instance.Clear();
+        StopAllCoroutines();
+        preFactor++; //사전 증세 요인 + 1
+
+#if UNITY_EDITOR
+        Debug.Log("PreFactor: " + preFactor);
+#endif
+        if (isFirstCheckEnded == false)
+            CheckForFirstData(); // 초기 진단용 데이터 수집
+    }
+
+
+    // 조사 진행 (요인 체크)
+    private void DoSurvey()
+    {
+
+    }
+
+
+    // 상황별 증상 점수 추가
+    public void UpdateScoreBySituation(string situationId)
+    {
+        switch (situationId)
         {
-            TTSChanger.NormalSpeak(dialogs[++preUserDataReply]);
+            case "avoid_call":
+                preFactor++;
+                break;
+            case "hesitate_speaking":
+                midFactor++;
+                break;
+            case "regret_after_call":
+                postFactor++;
+                break;
+            default:
+#if UNITY_EDITOR
+                Debug.LogWarning("알 수 없는 상황 ID: " + situationId);
+#endif
+                break;
         }
     }
-    private void OnTTSEnded() // 진단 질문 시작
+
+    // 초기 진단용 로직 처리
+    private void CheckForFirstData()
+    {
+        // 초기 진단 끝났을 경우 return
+        if (isFirstCheckEnded == true) return;
+
+        // 전화를 받았을 경우
+        if (isTakeCall)
+        {
+            if (preUserDataReply == 0)
+            {
+                TTSChanger.NormalSpeak(dialogs[++preUserDataReply]);
+            }
+        }
+        // 전화를 받지 않았을 경우
+        else
+        {
+            // 진단용 대답 체크
+            StartCoroutine(GameManager.Instance.DelayTime(1f,
+            () =>
+            {
+                textUI.gameObject.SetActive(true);
+                textUI.text = dialogs[0];
+            }
+                ));
+
+            // 인풋필드 on
+            StartCoroutine(GameManager.Instance.DelayTime(1.5f,
+                () =>
+                {
+                    InputFieldUI.SetActive(true);
+                }
+                ));
+        }
+
+        isFirstCheckEnded = true;
+    }
+
+    // 초기 진단 질문 시작
+    private void OnTTSEnded()
     {
         if (dialogs.Length <= preUserDataReply) return;
         MicRecorder.StartRecording(); /// 마이크 녹음 시작
     }
-    private void OnRecordEnded(string userComment) // 마이크 녹음 종료 시 호출
+    // 마이크 녹음 종료 시 호출
+    private void OnRecordEnded(string userComment)
     {
         if (preUserDataReply == 1) // 첫번째 질문 응답 종료 경우
         {
@@ -123,36 +212,7 @@ public class DiagnosisSystem : MonoBehaviour
         }
     }
 
-    // 전화 끊기 버튼 / 나중에 보기 버튼 눌렀을 경우, 스크립트 실행 및 마이크
-    public void UnTakeCall()
-    {
-        SoundManager.instance.Clear();
-        StopAllCoroutines();
-        preFactor++; //사전 증세 요인 + 1
-
-#if UNITY_EDITOR
-        Debug.Log("PreFactor: " + preFactor);
-#endif
-
-        // 진단용 대답 체크
-        StartCoroutine(GameManager.Instance.DelayTime(1f,
-        () =>
-        {
-            textUI.gameObject.SetActive(true);
-            textUI.text = dialogs[0];
-        }
-            ));
-
-        // 인풋필드 on
-        StartCoroutine(GameManager.Instance.DelayTime(1.5f,
-            () =>
-            {
-                InputFieldUI.SetActive(true);
-            }
-            ));
-    }
-
-    // 인풋 필드 정보 체크
+    // 초기 문자 진단 시, 인풋 필드 정보 체크 버튼
     public void FillCheckInputField()
     {
         if (nameField.text == "" || nameField.text.Contains(" "))
@@ -178,31 +238,12 @@ public class DiagnosisSystem : MonoBehaviour
         DoSurvey();
     }
 
-    // 조사 진행 (전화 문자 선호도에 대해)
-    private void DoSurvey()
-    {
 
-    }
 
-    // 상황별 증상 점수 추가
-    public void UpdateScoreBySituation(string situationId)
+    // 종료 시, 델리게이트 해제
+    private void OnDestroy()
     {
-        switch (situationId)
-        {
-            case "avoid_call":
-                preFactor++;
-                break;
-            case "hesitate_speaking":
-                midFactor++;
-                break;
-            case "regret_after_call":
-                postFactor++;
-                break;
-            default:
-#if UNITY_EDITOR
-                Debug.LogWarning("알 수 없는 상황 ID: " + situationId);
-#endif
-                break;
-        }
+        TTSChanger.actionTTSEnded -= OnTTSEnded;
+        MicRecorder.actionMicRecorded -= OnRecordEnded;
     }
 }

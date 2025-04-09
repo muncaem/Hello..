@@ -35,7 +35,7 @@ public class MicRecorder : MonoBehaviour
 
                 if (silenceTimer >= maxSilenceTime)
                 {
-                    StopAndSendRecording(); // 3초 이상 조용하면 자동 종료
+                    StopAndSendRecording(); // maxSilenceTime초 이상 조용하면 자동 종료
                 }
             }
             else

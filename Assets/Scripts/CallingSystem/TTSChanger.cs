@@ -95,7 +95,7 @@ public class TTSChanger : MonoBehaviour
                 break;
             case "╫╫гд":
                 pitch = 0.9f;
-                speakingRate = 0.8f;
+                speakingRate = 1f;
                 break;
             default:
                 pitch = 1.0f;

@@ -16,23 +16,17 @@ public class ConversationManager : MonoBehaviour
 
     private void Awake()
     {
+        DiagnosisSystem.OnTakeCall += StartConversation; // 진단 시스템에서 전화를 받았을 경우 대리자 호출
+
         MicRecorder.actionMicRecorded += OnUserSpeechRecognized; // 마이크 리코더에서 stt 변환 이후 대리자 호출
         GptRequester.actionGptReceived += OnGPTReplyReceived; // 지피티 requester에서 gpt 응답 이후 대리자 호출
         TTSChanger.actionTTSEnded += OnTTSEnded; // 지피티 응답 tts 처리 이후 작업 호출
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        currentScenario = scenarioMaker.ScenarioMaker();
-
-        //// 1. GPT가 먼저 전화 시작 2. 유저 말 감지 루프는 GPT 응답 끝난 후에 시작되도록 GptRequester에서 처리
-        //gptRequester.RequestGPT(scenarioMaker.ScenarioMaker()); // GPT가 먼저 발화
-    }
-
     public void StartConversation()
     {
         Debug.Log("StartConversation()");
+        currentScenario = scenarioMaker.ScenarioMaker();
         // 1. GPT가 먼저 전화 시작 2. 유저 말 감지 루프는 GPT 응답 끝난 후에 시작되도록 GptRequester에서 처리
         gptRequester.RequestGPT(currentScenario); // GPT가 먼저 발화
     }
@@ -49,7 +43,7 @@ public class ConversationManager : MonoBehaviour
         ttsChanger.Speak(reply, voice);
 
 
-        // 전화 종료 시 UI처리
+        // 전화 종료 시 UI PhoneManager.cs 델리게이트에서 처리
         if (isEnd)
         {
             isConversationEnded = true; // 대화 종료 경우
