@@ -13,20 +13,12 @@ public class ScriptsController : MonoBehaviour
         textUI = transform.GetChild(0).GetComponent<Text>();
     }
 
-    // Start is called before the first frame update
     void Start()
     {
-        //DiagnosisSystem.OnTakeCallScriptsLogic += NormalQuestionVoice;
-
-        DiagnosisSystem.actionTakeCall += NormalQuestionVoice;
-        DiagnosisSystem.actionUnTakeCall += NormalQuestionText;
+        //DiagnosisSystem.actionTakeCall += NormalQuestionVoice;
+        //DiagnosisSystem.actionUnTakeCall += NormalQuestionText;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 
     // 처음 시작 후
     // 전화 응답 시, 일반 질문 -> 기본적인 정보 수집
@@ -51,10 +43,10 @@ public class ScriptsController : MonoBehaviour
     }
 
 
-    // 종료 시, 델리게이트 해제
-    private void OnDestroy()
-    {
-        DiagnosisSystem.actionTakeCall -= NormalQuestionVoice;
-        DiagnosisSystem.actionUnTakeCall -= NormalQuestionText;
-    }
+    //// 종료 시, 델리게이트 해제
+    //private void OnDestroy()
+    //{
+    //    DiagnosisSystem.actionTakeCall -= NormalQuestionVoice;
+    //    DiagnosisSystem.actionUnTakeCall -= NormalQuestionText;
+    //}
 }

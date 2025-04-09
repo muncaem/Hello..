@@ -33,7 +33,10 @@ public class TTSChanger : MonoBehaviour
 
         StartCoroutine(RequestTTS(text, voice, pitch, speakingRate));
     }
-
+    public void NormalSpeak(string text)
+    {
+        StartCoroutine(RequestTTS(text, "ko-KR-Neural2-C", 1, 1));
+    }
     private IEnumerator RequestTTS(string text, string voice, float pitch, float speakingRate)
     {
         WWWForm form = new WWWForm();
