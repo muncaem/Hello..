@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -13,9 +14,7 @@ public class DiagnosisSystem : MonoBehaviour
     private int midFactor = 0; // 발화 불안 - 발화 중 대응 불안
     private int postFactor = 0; // 사후 반추 - 전화를 끊은 뒤 후회 및 불안
 
-    private int preUserDataReply = 0;
-    private string userName;
-    private string userDetermination;
+    private int preUserDataReply = 0; // 초기 진단 시, 유저 대답 횟수 체크
     /// </summary>
 
     // 초기 진단 확인용 bool값
@@ -24,6 +23,10 @@ public class DiagnosisSystem : MonoBehaviour
     private bool isTakeCall = false;
     // 전화 받을 기회
     private int TakeCallChance = 3;
+    // Main 노출 치료 시, 하루당 유저가 걸어야 하는 전화 횟수
+    private int outGoingCall;
+    // Main 노출 치료 시, 하루당 유저가 받아야 하는 전화 횟수
+    private int inCompingCall;
 
     // 마이크 이미지 및 버튼
     [Header("Function")]
@@ -32,6 +35,7 @@ public class DiagnosisSystem : MonoBehaviour
     [Header("UI")]
     [SerializeField] private GameObject EmptyScreen;
     [SerializeField] private GameObject InputFieldUI;
+    [SerializeField] private GameObject SurveyScreen;
     private GameObject MikeOnBtn; // 유저 이름 입력하는 inputField로 바꾸기
     private UnityEngine.UI.Image MikeOffImg; // 각오 입력하는 inputField로 바꾸기
     private UnityEngine.UI.Text textUI; // 유저 정보 수집 위한 안내 텍스트
@@ -57,6 +61,8 @@ public class DiagnosisSystem : MonoBehaviour
     {
         TTSChanger.actionTTSEnded += OnTTSEnded;
         MicRecorder.actionMicRecorded += OnRecordEnded;
+        CallSurvey.actionUpdatedSurvey += UpdateScoreBySituation;
+        CallSurvey.actionEndedSurvey += ReturnFinalScore;
     }
     // 초기 진단 시작 버튼(게임 시작 버튼)
     public void StartDiagnosis()
@@ -84,6 +90,12 @@ public class DiagnosisSystem : MonoBehaviour
         UnTakeCall();
     }
 
+
+    // Main 씬에서 송신/수신량 랜덤 결정
+    private void StartMainTherapy()
+    {
+        // 하루 지날 때마다 계산 pre가 avg(mid + post)보다 크면 송신이 60%이상 작으면 수신이 60% 이상 중 랜덤 값
+    }
 
 
     // 전화 받기 버튼 눌렀을 경우,
@@ -114,15 +126,9 @@ public class DiagnosisSystem : MonoBehaviour
     }
 
 
-    // 조사 진행 (요인 체크)
-    private void DoSurvey()
-    {
-
-    }
-
 
     // 상황별 증상 점수 추가
-    public void UpdateScoreBySituation(string situationId)
+    private void UpdateScoreBySituation(string situationId)
     {
         switch (situationId)
         {
@@ -140,6 +146,19 @@ public class DiagnosisSystem : MonoBehaviour
                 Debug.LogWarning("알 수 없는 상황 ID: " + situationId);
 #endif
                 break;
+        }
+    }
+    private void ReturnFinalScore()
+    {
+        if (SceneManager.GetActiveScene().buildIndex == 0)
+        {
+            UserData.Instance.firstPreFactor = preFactor;
+            UserData.Instance.firstMidFactor = midFactor;
+            UserData.Instance.firstPostFactor = postFactor;
+
+#if UNITY_EDITOR
+            Debug.Log($"preFactor: {preFactor}, midFactor: {midFactor}, postFactor: {postFactor}");
+#endif
         }
     }
 
@@ -192,25 +211,30 @@ public class DiagnosisSystem : MonoBehaviour
     {
         if (preUserDataReply == 1) // 첫번째 질문 응답 종료 경우
         {
-            userName = userComment; /// 유저 이름 데이터 저장
+            UserData.Instance.userName = userComment; /// 유저 이름 데이터 저장
             TTSChanger.NormalSpeak(dialogs[++preUserDataReply]); // 두번째 진단 질문 시작
         }
         else if (preUserDataReply == 2) // 두번째 질문 응답 종료 경우
         {
-            userDetermination = userComment; /// 유저 각오 데이터 저장
+            UserData.Instance.userDetermination = userComment; /// 유저 각오 데이터 저장
 
             //전화 종료 UI추가 예정
 
-            TTSChanger.NormalSpeak($"감사합니다, {userName}님. 동대표로서 앞으로 잘 부탁드립니다~");
+            TTSChanger.NormalSpeak($"감사합니다, {UserData.Instance.userName}님. 동대표로서 앞으로 잘 부탁드립니다~");
 #if UNITY_EDITOR
-            Debug.Log($"초기 진단 종료 - 유저 이름: {userName}, 각오 한마디: {userDetermination}");
+            Debug.Log($"초기 진단 종료 - 유저 이름: {UserData.Instance.userName}, 각오 한마디: {UserData.Instance.userDetermination}");
 #endif
             preUserDataReply += 1;
 
-            DoSurvey();
+            //DoSurvey();
+
+            //전화 종료 UI 띄우기 위해 딜레이 넣을지 생각
+            SurveyScreen.gameObject.SetActive(true);
+            SurveyScreen.transform.GetChild(0).gameObject.SetActive(true);
             return;
         }
     }
+
 
     // 초기 문자 진단 시, 인풋 필드 정보 체크 버튼
     public void FillCheckInputField()
@@ -228,14 +252,19 @@ public class DiagnosisSystem : MonoBehaviour
             return;
         }
 
-        userName = nameField.text;
-        userDetermination = determinationField.text;
+        UserData.Instance.userName = nameField.text;
+        UserData.Instance.userDetermination = determinationField.text;
 
 #if UNITY_EDITOR
-        Debug.Log($"초기 진단 종료 - 유저 이름: {userName}, 각오 한마디: {userDetermination}");
+        Debug.Log($"초기 진단 종료 - 유저 이름: {UserData.Instance.userName}, 각오 한마디: {UserData.Instance.userDetermination}");
 #endif
 
-        DoSurvey();
+        //DoSurvey();
+        if (SurveyScreen.transform.childCount > 1)
+        {
+            SurveyScreen.gameObject.SetActive(true);
+            SurveyScreen.transform.GetChild(1).gameObject.SetActive(true);
+        }
     }
 
 

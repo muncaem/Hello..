@@ -2382,6 +2382,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 798202535}
+  - component: {fileID: 798202536}
   m_Layer: 5
   m_Name: EndMsgSurvey
   m_TagString: Untagged
@@ -2422,6 +2423,23 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &798202536
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 798202534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c567fa1d0ea8ac043b5fec41269ba6f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CheckBoxes:
+  - {fileID: 1082094265}
+  - {fileID: 1509557256}
+  - {fileID: 1172084890}
+  - {fileID: 1292684891}
 --- !u!1 &802687357
 GameObject:
   m_ObjectHideFlags: 0
@@ -4128,7 +4146,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1237956439}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 798202536}
+        m_TargetAssemblyTypeName: CallSurvey, Assembly-CSharp
+        m_MethodName: SendCallSurvey
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1237956439
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4392,7 +4422,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1244118288}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1504971701}
+        m_TargetAssemblyTypeName: CallSurvey, Assembly-CSharp
+        m_MethodName: SendCallSurvey
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1244118288
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4742,6 +4784,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1504971700}
+  - component: {fileID: 1504971701}
   m_Layer: 5
   m_Name: EndCallSurvey
   m_TagString: Untagged
@@ -4782,6 +4825,23 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1504971701
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1504971699}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c567fa1d0ea8ac043b5fec41269ba6f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CheckBoxes:
+  - {fileID: 407124558}
+  - {fileID: 72621340}
+  - {fileID: 708971180}
+  - {fileID: 1218026099}
 --- !u!1 &1509557256
 GameObject:
   m_ObjectHideFlags: 0
@@ -4960,6 +5020,7 @@ MonoBehaviour:
   TTSChanger: {fileID: 2106580615}
   EmptyScreen: {fileID: 1048643156}
   InputFieldUI: {fileID: 159330854}
+  SurveyScreen: {fileID: 0}
   dialogs:
   - "\uB3D9\uB300\uD45C \uC9C0\uC6D0\uD558\uC168\uC8E0? \uB300\uD45C\uB85C \uC77C\uD558\uAC8C
     \uB420\uD150\uB370 \uBD88\uB9B4 \uC774\uB984\uACFC \uAC01\uC624 \uD55C \uB9C8\uB514

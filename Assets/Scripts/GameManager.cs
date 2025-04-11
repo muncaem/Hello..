@@ -22,7 +22,7 @@ public class GameManager : MonoBehaviour
         }
 
         curSceneNumb = SceneManager.GetActiveScene().buildIndex;
-        InteractiveButton.actionEndTalk += MoveScene;
+        CallSurvey.actionEndedSurvey += MoveScene;
     }
 
     // æ¿ ¿Ãµø

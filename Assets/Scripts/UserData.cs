@@ -4,15 +4,24 @@ using UnityEngine;
 
 public class UserData : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public static UserData Instance;
+    private void Awake()
     {
-        
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(Instance);
+        }
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    public string userName { get; set; }
+    public string userDetermination { get; set; }
+
+    public int firstPreFactor { get; set; }
+    public int firstMidFactor { get; set; }
+    public int firstPostFactor { get; set; }
+
+    public int lastPreFactor { get; set; }
+    public int lastMidFactor { get; set; }
+    public int lastPostFactor { get; set; }
 }
