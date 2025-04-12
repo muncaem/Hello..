@@ -18,11 +18,14 @@ public class DiagnosisSystem : MonoBehaviour
     /// </summary>
 
     // 초기 진단 확인용 bool값
-    private bool isFirstCheckEnded = false;
-    // 기회 내 전화 받았는지 여부 체크 => 회피 요인 +1
-    private bool isTakeCall = false;
+    private bool isFirstScene;
+    // 기회 내 전화 받았는지 여부 체크 및 현재 전화 중인지 체크 => 회피 요인 +1
+    private bool isCalled = false;
     // 전화 받을 기회
     private int TakeCallChance = 3;
+
+    // Main 노출 치료 시, 총 전화량
+    private int totalCallValue = 8;
     // Main 노출 치료 시, 하루당 유저가 걸어야 하는 전화 횟수
     private int outGoingCall;
     // Main 노출 치료 시, 하루당 유저가 받아야 하는 전화 횟수
@@ -32,39 +35,41 @@ public class DiagnosisSystem : MonoBehaviour
     [Header("Function")]
     [SerializeField] private MicRecorder MicRecorder;
     [SerializeField] private TTSChanger TTSChanger;
-    [Header("UI")]
-    [SerializeField] private GameObject EmptyScreen;
-    [SerializeField] private GameObject InputFieldUI;
-    [SerializeField] private GameObject SurveyScreen;
-    private GameObject MikeOnBtn; // 유저 이름 입력하는 inputField로 바꾸기
-    private UnityEngine.UI.Image MikeOffImg; // 각오 입력하는 inputField로 바꾸기
-    private UnityEngine.UI.Text textUI; // 유저 정보 수집 위한 안내 텍스트
-    private InputField nameField; // 이름 인풋필드
-    private InputField determinationField; // 각오 인풋 필드
 
+    [Header("DiagnosisText")]
     [SerializeField] private string[] dialogs; // 다이얼로그
 
 
     public static Action OnTakeCall; // 진단시스템으로부터 오는 전화를 받았을 경우 ConversationManager의 대화 시작
+    public static Action<string> actionFirstTestUnCall;
+    public static Action actionFirstCallEndedCall;
+    public static Action actionUnCall;
 
 
     private void Awake()
     {
-        MikeOffImg = EmptyScreen.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>();
-        MikeOnBtn = EmptyScreen.transform.GetChild(1).gameObject;
-        textUI = EmptyScreen.transform.GetChild(0).GetComponent<UnityEngine.UI.Text>();
-        nameField = InputFieldUI.transform.GetChild(0).GetComponent<InputField>();
-        determinationField = InputFieldUI.transform.GetChild(1).GetComponent<InputField>();
+        isFirstScene = SceneManager.GetActiveScene().buildIndex == 0 ? true : false;
+        if (SceneManager.GetActiveScene().name.Contains("Start"))
+            isFirstScene = true;
     }
 
     void Start()
     {
-        TTSChanger.actionTTSEnded += OnTTSEnded;
-        MicRecorder.actionMicRecorded += OnRecordEnded;
+        if (isFirstScene)
+        {
+            TTSChanger.actionTTSEnded += OnTTSEnded;
+            MicRecorder.actionMicRecorded += OnRecordEnded;
+        }
         CallSurvey.actionUpdatedSurvey += UpdateScoreBySituation;
         CallSurvey.actionEndedSurvey += ReturnFinalScore;
+        MicRecorder.actionUpdatedFactor += UpdateScoreBySituation;
+        GameManager.actionUpdatedDay += StartMainTherapy; // 하루가 지날때마다 송신/수신량 결정
+        GameManager.actionUpdatedCall += InComingCall; // n초마다 전화 오게 함
+        ConversationManager.actionEndedCall += RefreshCallState;
     }
-    // 초기 진단 시작 버튼(게임 시작 버튼)
+    /// <summary>
+    /// 초기 진단 시작 버튼(게임 시작 버튼)
+    /// </summary>
     public void StartDiagnosis()
     {
         //초기 전화 받기/거절 테스트
@@ -72,11 +77,11 @@ public class DiagnosisSystem : MonoBehaviour
     }
     private IEnumerator InitCheck()
     {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(1.5f);
 
         for (int i = 0; i < TakeCallChance; i++)
         {
-            if (!isTakeCall)
+            if (!isCalled)
             {
                 SoundManager.instance.Play("bell");
 
@@ -86,32 +91,97 @@ public class DiagnosisSystem : MonoBehaviour
         yield return null;
 
         // 3번 벨 울린 이후, 전화 받지 않은 것으로 간주
-        EmptyScreen.SetActive(true);
+        if (isFirstScene) // 초기 진단일 경우
+            actionFirstTestUnCall?.Invoke(dialogs[0]);
+        // Main 치료 경우
+        else
+        {
+            // surveyScreen 아래 홈 화면 활성화.
+            // 전화 끊을 때마다 survey할지 하루 지날때마다 할지 고민임.
+            // 일단 survey한다고 하면 survey 버튼 누르면 CallSurvey.actionEndedSurvey; 델리게이트 호출됨.
+            actionUnCall?.Invoke();
+        }
         UnTakeCall();
     }
 
-
-    // Main 씬에서 송신/수신량 랜덤 결정
+    /// <summary>
+    /// Main 씬에서 송신/수신량 랜덤 결정
+    /// 하루 지날 때마다 계산
+    /// pre가 avg(mid + post)보다 크면 송신이 50% + 1이상. 작으면 수신이 50% + 1이상 중 랜덤 값
+    /// </summary>
     private void StartMainTherapy()
     {
-        // 하루 지날 때마다 계산 pre가 avg(mid + post)보다 크면 송신이 60%이상 작으면 수신이 60% 이상 중 랜덤 값
+        int firstPre = UserData.Instance.firstPreFactor;
+        int firstMid = UserData.Instance.firstMidFactor;
+        int firstPost = UserData.Instance.firstPostFactor;
+
+        if (firstPre > (firstMid + firstPost) / 2)
+        {
+            inCompingCall = UnityEngine.Random.Range(totalCallValue / 2 + 1, totalCallValue + 1);
+            outGoingCall = totalCallValue - inCompingCall;
+        }
+        else if (firstPre > (firstMid + firstPost) / 2)
+        {
+            outGoingCall = UnityEngine.Random.Range(totalCallValue / 2 + 1, totalCallValue + 1);
+            inCompingCall = totalCallValue = outGoingCall;
+        }
+
+        InComingCall();
     }
 
+    private void RefreshCallState()
+    {
+        // ConversationManager에서 전화 끝나면 호출되어 전화 상태 false로 변경
+        isCalled = false;
+    }
 
-    // 전화 받기 버튼 눌렀을 경우,
+    /// <summary>
+    /// n초마다 전화가 오고 송신 전화 Conversation 시작 - GameManager의 n초 지남 대리자 연결
+    /// </summary>
+    private void InComingCall()
+    {
+        // 전화 중이면 return
+        if (isCalled) return;
+
+        // 하루 시작하자마자 n초 후 전화 오게 함
+        StartCoroutine(GameManager.Instance.DelayTime(3f, () =>
+        {
+            // 휴대폰에 전화오는 UI 띄우기
+            StartCoroutine(InitCheck());
+
+        }));
+    }
+
+    /// <summary>
+    /// 민원 해결 위해 전화 대기 목록에 있는 수신 전화 버튼 눌렀을 경우 Conversation 시작 버튼
+    /// </summary>
+    public void OutGoingCall()
+    {
+        // 전화 중이면 return
+        if (isCalled) return;
+
+        // 시나리오 미리 정해져있어서 그걸 GPT한테 Request따로 해야할 듯
+
+    }
+
+    /// <summary>
+    /// 전화 받기 버튼 눌렀을 경우
+    /// </summary>
     public void TakeCall()
     {
         SoundManager.instance.Clear();
         StopAllCoroutines();
-        isTakeCall = true;
+        isCalled = true;
 
-        if (isFirstCheckEnded == false)
+        if (isFirstScene == true)
             CheckForFirstData(); // 초기 진단용 음성 대화
         else
-            OnTakeCall?.Invoke(); // 전화를 받았을 경우 실행되는 델리게이트
+            OnTakeCall?.Invoke(); // 전화를 받았을 경우 실행되는 델리게이트 => StartConversation()
     }
 
-    // 전화 끊기 버튼 / 나중에 보기 버튼 눌렀을 경우,
+    /// <summary>
+    /// 전화 끊기 버튼 / 나중에 보기 버튼 눌렀을 경우
+    /// </summary>
     public void UnTakeCall()
     {
         SoundManager.instance.Clear();
@@ -121,15 +191,27 @@ public class DiagnosisSystem : MonoBehaviour
 #if UNITY_EDITOR
         Debug.Log("PreFactor: " + preFactor);
 #endif
-        if (isFirstCheckEnded == false)
-            CheckForFirstData(); // 초기 진단용 데이터 수집
+        if (isFirstScene == true)
+            actionFirstTestUnCall?.Invoke(dialogs[0]); // 초기 진단 전화 거절로 텍스트로 진행
+        else
+        {
+            outGoingCall++; // 거절 시, 수신 전화 추가
+            // 평판 시스템 평판 감소 => UI 연결 시 델리게이트로 옮기기 고려
+            UserData.Instance.userReputation--;
+            actionUnCall?.Invoke();
+        }
     }
 
 
-
-    // 상황별 증상 점수 추가
+    /// <summary>
+    /// 상황별 증상 점수 추가
+    /// </summary>
+    /// <param name="situationId"> 증상 형태 </param>
     private void UpdateScoreBySituation(string situationId)
     {
+#if UNITY_EDITOR
+        Debug.Log($"UpdateScoreBySituation: {situationId}");
+#endif
         switch (situationId)
         {
             case "avoid_call":
@@ -159,17 +241,17 @@ public class DiagnosisSystem : MonoBehaviour
 #if UNITY_EDITOR
             Debug.Log($"preFactor: {preFactor}, midFactor: {midFactor}, postFactor: {postFactor}");
 #endif
+            CallSurvey.actionEndedSurvey -= ReturnFinalScore;
         }
     }
 
-    // 초기 진단용 로직 처리
+    /// <summary>
+    /// 초기 진단용 로직 처리
+    /// </summary>
     private void CheckForFirstData()
     {
-        // 초기 진단 끝났을 경우 return
-        if (isFirstCheckEnded == true) return;
-
         // 전화를 받았을 경우
-        if (isTakeCall)
+        if (isCalled)
         {
             if (preUserDataReply == 0)
             {
@@ -180,33 +262,22 @@ public class DiagnosisSystem : MonoBehaviour
         else
         {
             // 진단용 대답 체크
-            StartCoroutine(GameManager.Instance.DelayTime(1f,
-            () =>
-            {
-                textUI.gameObject.SetActive(true);
-                textUI.text = dialogs[0];
-            }
-                ));
-
-            // 인풋필드 on
-            StartCoroutine(GameManager.Instance.DelayTime(1.5f,
-                () =>
-                {
-                    InputFieldUI.SetActive(true);
-                }
-                ));
+            actionFirstTestUnCall?.Invoke(dialogs[0]);
         }
-
-        isFirstCheckEnded = true;
     }
 
-    // 초기 진단 질문 시작
+    /// <summary>
+    /// 초기 진단 질문 시작
+    /// </summary>
     private void OnTTSEnded()
     {
         if (dialogs.Length <= preUserDataReply) return;
         MicRecorder.StartRecording(); /// 마이크 녹음 시작
     }
-    // 마이크 녹음 종료 시 호출
+    /// <summary>
+    /// 마이크 녹음 종료 시 호출 됨
+    /// </summary>
+    /// <param name="userComment"> 유저 응답 </param>
     private void OnRecordEnded(string userComment)
     {
         if (preUserDataReply == 1) // 첫번째 질문 응답 종료 경우
@@ -218,61 +289,20 @@ public class DiagnosisSystem : MonoBehaviour
         {
             UserData.Instance.userDetermination = userComment; /// 유저 각오 데이터 저장
 
-            //전화 종료 UI추가 예정
-
             TTSChanger.NormalSpeak($"감사합니다, {UserData.Instance.userName}님. 동대표로서 앞으로 잘 부탁드립니다~");
 #if UNITY_EDITOR
             Debug.Log($"초기 진단 종료 - 유저 이름: {UserData.Instance.userName}, 각오 한마디: {UserData.Instance.userDetermination}");
 #endif
             preUserDataReply += 1;
 
-            //DoSurvey();
+            actionFirstCallEndedCall?.Invoke();
 
-            //전화 종료 UI 띄우기 위해 딜레이 넣을지 생각
-            SurveyScreen.gameObject.SetActive(true);
-            SurveyScreen.transform.GetChild(0).gameObject.SetActive(true);
+            isCalled = false; // 초기 진단 전화 종료
+
+            // 델리게이트 해제
+            TTSChanger.actionTTSEnded -= OnTTSEnded;
+            MicRecorder.actionMicRecorded -= OnRecordEnded;
             return;
         }
-    }
-
-
-    // 초기 문자 진단 시, 인풋 필드 정보 체크 버튼
-    public void FillCheckInputField()
-    {
-        if (nameField.text == "" || nameField.text.Contains(" "))
-        {
-            UnityEngine.UI.Text placeholder = nameField.placeholder as UnityEngine.UI.Text;
-            placeholder.text = "공백 불가";
-            return;
-        }
-        if (determinationField.text == "")
-        {
-            UnityEngine.UI.Text placeholder = determinationField.placeholder as UnityEngine.UI.Text;
-            placeholder.text = "공백 불가";
-            return;
-        }
-
-        UserData.Instance.userName = nameField.text;
-        UserData.Instance.userDetermination = determinationField.text;
-
-#if UNITY_EDITOR
-        Debug.Log($"초기 진단 종료 - 유저 이름: {UserData.Instance.userName}, 각오 한마디: {UserData.Instance.userDetermination}");
-#endif
-
-        //DoSurvey();
-        if (SurveyScreen.transform.childCount > 1)
-        {
-            SurveyScreen.gameObject.SetActive(true);
-            SurveyScreen.transform.GetChild(1).gameObject.SetActive(true);
-        }
-    }
-
-
-
-    // 종료 시, 델리게이트 해제
-    private void OnDestroy()
-    {
-        TTSChanger.actionTTSEnded -= OnTTSEnded;
-        MicRecorder.actionMicRecorded -= OnRecordEnded;
     }
 }

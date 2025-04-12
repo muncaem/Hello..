@@ -16,6 +16,12 @@ public class UserData : MonoBehaviour
 
     public string userName { get; set; }
     public string userDetermination { get; set; }
+    private float _userReputation = 100;
+    public float userReputation
+    {
+        get => _userReputation;
+        set => _userReputation = Mathf.Clamp(value, 0, 100);
+    }
 
     public int firstPreFactor { get; set; }
     public int firstMidFactor { get; set; }

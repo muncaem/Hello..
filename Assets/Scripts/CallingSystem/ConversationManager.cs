@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,6 +14,8 @@ public class ConversationManager : MonoBehaviour
     private string emotionTag; ///ai 주민 감정 태그
     public static string GlobalEmotionTag { get; private set; } // 감정 태그 static 변수
     private string currentScenario; /// 현 ai 주민 배경 시나리오
+
+    public static Action actionEndedCall;
 
     private void Awake()
     {
@@ -42,13 +45,14 @@ public class ConversationManager : MonoBehaviour
         string voice = DetermineVoiceFromScenario(currentScenario);
         ttsChanger.Speak(reply, voice);
 
-
-        // 전화 종료 시 UI PhoneManager.cs 델리게이트에서 처리
         if (isEnd)
         {
             isConversationEnded = true; // 대화 종료 경우
             Debug.Log("전화 종료 처리!");
+
             // 전화 UI 끄기, 애니메이션 종료 등
+            actionEndedCall?.Invoke();
+
             return;
         }
     }

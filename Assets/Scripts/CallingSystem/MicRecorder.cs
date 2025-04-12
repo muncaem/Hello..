@@ -3,6 +3,7 @@ using System.IO;
 using UnityEngine.Networking;
 using System.Collections;
 using System;
+using System.Security.Cryptography;
 
 public class MicRecorder : MonoBehaviour
 {
@@ -11,11 +12,14 @@ public class MicRecorder : MonoBehaviour
     private float silenceTimer = 0f;
     private const float silenceThreshold = 0.01f; // 감지 기준 볼륨
     private const float maxSilenceTime = 2f;      // 침묵 지속 시간
+    private int silenceCount = 0; // 침묵 횧수
+    private int maxSilenceCount = 3; // 최대 침묵 가능 횟수
 
     private string micDevice;
     private int sampleWindow = 128;
 
     public static Action<string> actionMicRecorded; // stt 변환 이후 대리자 호출
+    public static Action<string> actionUpdatedFactor; // 콜포비아 요인 업데이트 대리자 호출
 
     [System.Serializable]
     public class SttResponse
@@ -115,13 +119,45 @@ public class MicRecorder : MonoBehaviour
                 SttResponse res = JsonUtility.FromJson<SttResponse>(json);
                 Debug.Log("인식된 텍스트: " + res.text);
 
-                actionMicRecorded?.Invoke(res.text);
-                //OnUserSpeechRecognized(res.text);
+                CheckPhobiaSymtom(res.text);
             }
             else
             {
                 Debug.LogError("STT 서버 요청 실패: " + www.error);
             }
+        }
+    }
+
+    private void CheckPhobiaSymtom(string response)
+    {
+        if (string.IsNullOrWhiteSpace(response))
+        {
+            silenceCount++;
+            if (silenceCount >= maxSilenceCount)
+            {
+#if UNITY_EDITOR
+                Debug.Log("유저 침묵 지속 - 통화 종료 유도");
+#endif
+                // GptRequester.ReqestGPT대신 델리게이트 이용
+                actionMicRecorded?.Invoke("유저가 계속 침묵하고 있어.");
+
+                // 회피 요인 추가
+                actionUpdatedFactor?.Invoke("avoid_call");
+            }
+        }
+        else
+        {
+            if (response.Contains("음") || response.Contains("어")
+                || response.Contains("모르겠어요") || response.Contains("글쎼요")
+                || response.Contains("다시 말") || response.Contains("다시 한 번 말"))
+            {
+                // 발화 불안 요인 추가
+                actionUpdatedFactor?.Invoke("hesitate_speaking");
+            }
+
+            // 녹음 완료. 대리 함수 호출
+            actionMicRecorded?.Invoke(response);
+            silenceCount = 0;
         }
     }
 }
