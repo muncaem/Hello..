@@ -24,8 +24,8 @@ public class DiagnosisSystem : MonoBehaviour
     // 전화 받을 기회
     private int TakeCallChance = 3;
 
-    // Main 노출 치료 시, 총 전화량
-    private int totalCallValue = 8;
+    // Main 노출 치료 시, 하루 총 전화량
+    private int totalCallValue = 6;
     // Main 노출 치료 시, 하루당 유저가 걸어야 하는 전화 횟수
     private int outGoingCall;
     // Main 노출 치료 시, 하루당 유저가 받아야 하는 전화 횟수
@@ -96,11 +96,9 @@ public class DiagnosisSystem : MonoBehaviour
         // Main 치료 경우
         else
         {
-            // surveyScreen 아래 홈 화면 활성화.
-            // 전화 끊을 때마다 survey할지 하루 지날때마다 할지 고민임.
-            // 일단 survey한다고 하면 survey 버튼 누르면 CallSurvey.actionEndedSurvey; 델리게이트 호출됨.
             actionUnCall?.Invoke();
         }
+
         UnTakeCall();
     }
 
@@ -161,7 +159,8 @@ public class DiagnosisSystem : MonoBehaviour
         if (isCalled) return;
 
         // 시나리오 미리 정해져있어서 그걸 GPT한테 Request따로 해야할 듯
-
+        // 전화 걸어야 하는 횟수만큼 시나리오 메이커 돌려서
+        // UI 띄우고 UI 버튼 누르면 해당 프롬프트 들고 StartConversation되게 하기
     }
 
     /// <summary>

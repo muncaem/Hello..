@@ -10,12 +10,16 @@ public class ConversationManager : MonoBehaviour
     [SerializeField] private PhoneScenarioMaker scenarioMaker; // AI 주민 배경 시나리오 maker 클래스 연결
     [SerializeField] private TTSChanger ttsChanger; // tts 체인저 클래스 연결
 
+    private bool isEndCallbySilence = false;
     private bool isConversationEnded = false;
     private string emotionTag; ///ai 주민 감정 태그
     public static string GlobalEmotionTag { get; private set; } // 감정 태그 static 변수
     private string currentScenario; /// 현 ai 주민 배경 시나리오
+    public static bool GlobalCallState { get; private set; }
+
 
     public static Action actionEndedCall;
+    public static Action actionEndedCallbySilence;
 
     private void Awake()
     {
@@ -24,6 +28,8 @@ public class ConversationManager : MonoBehaviour
         MicRecorder.actionMicRecorded += OnUserSpeechRecognized; // 마이크 리코더에서 stt 변환 이후 대리자 호출
         GptRequester.actionGptReceived += OnGPTReplyReceived; // 지피티 requester에서 gpt 응답 이후 대리자 호출
         TTSChanger.actionTTSEnded += OnTTSEnded; // 지피티 응답 tts 처리 이후 작업 호출
+
+        MicRecorder.actionEndedBySilence += OnEndCallbySilence;
     }
 
     public void StartConversation()
@@ -32,6 +38,8 @@ public class ConversationManager : MonoBehaviour
         currentScenario = scenarioMaker.ScenarioMaker();
         // 1. GPT가 먼저 전화 시작 2. 유저 말 감지 루프는 GPT 응답 끝난 후에 시작되도록 GptRequester에서 처리
         gptRequester.RequestGPT(currentScenario); // GPT가 먼저 발화
+
+        GlobalCallState = true;
     }
 
     // GPT 응답 후 호출됨
@@ -48,13 +56,26 @@ public class ConversationManager : MonoBehaviour
         if (isEnd)
         {
             isConversationEnded = true; // 대화 종료 경우
-            Debug.Log("전화 종료 처리!");
+            GlobalCallState = false;
+            //Debug.Log("전화 종료 처리!");
 
-            // 전화 UI 끄기, 애니메이션 종료 등
-            actionEndedCall?.Invoke();
+            if (isEndCallbySilence)
+            {
+                actionEndedCallbySilence?.Invoke();
+                isEndCallbySilence = false;
+            }
+            else
+                actionEndedCall?.Invoke();
 
             return;
         }
+    }
+    /// <summary>
+    /// 침묵에 의해 전화 끊김 체크 <- MicRecorder에서 델리게이트 호출해서 받음
+    /// </summary>
+    private void OnEndCallbySilence()
+    {
+        isEndCallbySilence = true;
     }
 
     // STT 결과 → GPT 요청

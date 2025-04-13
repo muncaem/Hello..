@@ -20,6 +20,7 @@ public class MicRecorder : MonoBehaviour
 
     public static Action<string> actionMicRecorded; // stt 변환 이후 대리자 호출
     public static Action<string> actionUpdatedFactor; // 콜포비아 요인 업데이트 대리자 호출
+    public static Action actionEndedBySilence; // 침묵에 의한 전화 종료 유도 후 대리자 호출
 
     [System.Serializable]
     public class SttResponse
@@ -138,12 +139,16 @@ public class MicRecorder : MonoBehaviour
 #if UNITY_EDITOR
                 Debug.Log("유저 침묵 지속 - 통화 종료 유도");
 #endif
-                // GptRequester.ReqestGPT대신 델리게이트 이용
-                actionMicRecorded?.Invoke("유저가 계속 침묵하고 있어.");
+                actionMicRecorded?.Invoke("유저가 계속 침묵하고 있어. 너는 화가 났고 유저에게 전화를 끊겠다고 말해.");
 
                 // 회피 요인 추가
                 actionUpdatedFactor?.Invoke("avoid_call");
+                // 침묵에 의한 종료 유발 체크
+                actionEndedBySilence?.Invoke();
             }
+            else
+                // 발화 불안 요인 추가
+                actionUpdatedFactor?.Invoke("hesitate_speaking");
         }
         else
         {
