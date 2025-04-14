@@ -20,7 +20,7 @@ public class DiagnosisSystem : MonoBehaviour
     // 초기 진단 확인용 bool값
     private bool isFirstScene;
     // 기회 내 전화 받았는지 여부 체크 및 현재 전화 중인지 체크 => 회피 요인 +1
-    private bool isCalled = false;
+    public static bool isCalled { get; private set; } = false;
     // 전화 받을 기회
     private int TakeCallChance = 3;
 
@@ -35,6 +35,7 @@ public class DiagnosisSystem : MonoBehaviour
     [Header("Function")]
     [SerializeField] private MicRecorder MicRecorder;
     [SerializeField] private TTSChanger TTSChanger;
+    //[SerializeField] private OutGoingCallManager OutGoingCallManager;
 
     [Header("DiagnosisText")]
     [SerializeField] private string[] dialogs; // 다이얼로그
@@ -43,7 +44,10 @@ public class DiagnosisSystem : MonoBehaviour
     public static Action OnTakeCall; // 진단시스템으로부터 오는 전화를 받았을 경우 ConversationManager의 대화 시작
     public static Action<string> actionFirstTestUnCall;
     public static Action actionFirstCallEndedCall;
+    public static Action actionEndedSaveScore; // 초기 진단 점수 UserData에 저장 완료 후 대리자 호출
     public static Action actionUnCall;
+    public static Action<int> actionUpdatedOutGoingValue; // 날마다 업데이트 되는 수신 통화량
+    public static Action actionStartIncomingCall;
 
 
     private void Awake()
@@ -51,10 +55,7 @@ public class DiagnosisSystem : MonoBehaviour
         isFirstScene = SceneManager.GetActiveScene().buildIndex == 0 ? true : false;
         if (SceneManager.GetActiveScene().name.Contains("Start"))
             isFirstScene = true;
-    }
 
-    void Start()
-    {
         if (isFirstScene)
         {
             TTSChanger.actionTTSEnded += OnTTSEnded;
@@ -67,6 +68,7 @@ public class DiagnosisSystem : MonoBehaviour
         GameManager.actionUpdatedCall += InComingCall; // n초마다 전화 오게 함
         ConversationManager.actionEndedCall += RefreshCallState;
     }
+
     /// <summary>
     /// 초기 진단 시작 버튼(게임 시작 버튼)
     /// </summary>
@@ -102,6 +104,7 @@ public class DiagnosisSystem : MonoBehaviour
         UnTakeCall();
     }
 
+
     /// <summary>
     /// Main 씬에서 송신/수신량 랜덤 결정
     /// 하루 지날 때마다 계산
@@ -109,23 +112,40 @@ public class DiagnosisSystem : MonoBehaviour
     /// </summary>
     private void StartMainTherapy()
     {
+        StartCoroutine(DelayedMainTherapy());
+    }
+    private IEnumerator DelayedMainTherapy()
+    {
+        yield return null;
+
         int firstPre = UserData.Instance.firstPreFactor;
         int firstMid = UserData.Instance.firstMidFactor;
         int firstPost = UserData.Instance.firstPostFactor;
+        Debug.Log($"{firstPre} {firstMid} {firstPost}");
 
         if (firstPre > (firstMid + firstPost) / 2)
         {
-            inCompingCall = UnityEngine.Random.Range(totalCallValue / 2 + 1, totalCallValue + 1);
+            inCompingCall = UnityEngine.Random.Range(totalCallValue / 2 + 1, totalCallValue);
             outGoingCall = totalCallValue - inCompingCall;
         }
-        else if (firstPre > (firstMid + firstPost) / 2)
+        else if (firstPre < (firstMid + firstPost) / 2)
         {
-            outGoingCall = UnityEngine.Random.Range(totalCallValue / 2 + 1, totalCallValue + 1);
-            inCompingCall = totalCallValue = outGoingCall;
+            outGoingCall = UnityEngine.Random.Range(totalCallValue / 2 + 1, totalCallValue);
+            inCompingCall = totalCallValue - outGoingCall;
         }
+        else
+        {
+            outGoingCall = totalCallValue / 2;
+            inCompingCall = totalCallValue - outGoingCall;
+        }
+
+        Debug.Log($"outgoingcall: {outGoingCall}, incomingcall: {inCompingCall}");
+
+        actionUpdatedOutGoingValue?.Invoke(outGoingCall);
 
         InComingCall();
     }
+
 
     private void RefreshCallState()
     {
@@ -144,24 +164,12 @@ public class DiagnosisSystem : MonoBehaviour
         // 하루 시작하자마자 n초 후 전화 오게 함
         StartCoroutine(GameManager.Instance.DelayTime(3f, () =>
         {
+            actionStartIncomingCall?.Invoke();
             // 휴대폰에 전화오는 UI 띄우기
             StartCoroutine(InitCheck());
-
         }));
     }
 
-    /// <summary>
-    /// 민원 해결 위해 전화 대기 목록에 있는 수신 전화 버튼 눌렀을 경우 Conversation 시작 버튼
-    /// </summary>
-    public void OutGoingCall()
-    {
-        // 전화 중이면 return
-        if (isCalled) return;
-
-        // 시나리오 미리 정해져있어서 그걸 GPT한테 Request따로 해야할 듯
-        // 전화 걸어야 하는 횟수만큼 시나리오 메이커 돌려서
-        // UI 띄우고 UI 버튼 누르면 해당 프롬프트 들고 StartConversation되게 하기
-    }
 
     /// <summary>
     /// 전화 받기 버튼 눌렀을 경우
@@ -209,7 +217,7 @@ public class DiagnosisSystem : MonoBehaviour
     private void UpdateScoreBySituation(string situationId)
     {
 #if UNITY_EDITOR
-        Debug.Log($"UpdateScoreBySituation: {situationId}");
+        //Debug.Log($"UpdateScoreBySituation: {situationId}");
 #endif
         switch (situationId)
         {
@@ -241,6 +249,10 @@ public class DiagnosisSystem : MonoBehaviour
             Debug.Log($"preFactor: {preFactor}, midFactor: {midFactor}, postFactor: {postFactor}");
 #endif
             CallSurvey.actionEndedSurvey -= ReturnFinalScore;
+            actionEndedSaveScore?.Invoke();
+            Destroy(MicRecorder);
+            //Destroy(TTSChanger);
+            Destroy(transform.GetChild(0).gameObject);
         }
     }
 

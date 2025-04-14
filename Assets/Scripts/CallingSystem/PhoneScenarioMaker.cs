@@ -2,10 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public struct ScenarioData
+{
+    public string role { get; set; }
+    public string situation { get; set; }
+    public string emotion { get; set; }
+    public string emotionTag { get; set; }
+
+}
+
 public class PhoneScenarioMaker : MonoBehaviour
 {
-    private List<string> roles = new List<string> 
-    { 
+    private List<string> roles = new List<string>
+    {
         "70대 남성 노인회장이야",
         "젊은 아기 엄마야",
         "남자 고등학생이야",
@@ -17,7 +26,7 @@ public class PhoneScenarioMaker : MonoBehaviour
         "대학 남성 교수야",
         "여성 직장인이야"
     };
-    private List<string> situations  = new List<string> 
+    private List<string> situations = new List<string>
     {
         "버스 노선이 줄어든 걸 문제 삼고 있어",
         "집 앞 가로등이 고장나서 집 가는 길이 암흑이어서 무섭다는 것을 문제 삼고 있어",
@@ -55,25 +64,29 @@ public class PhoneScenarioMaker : MonoBehaviour
         { "중립적인", "[중립]" }
     };
 
-    //// 버튼 클릭이든 하루가 시작되면 바로 나오든지 해서 랜덤으로 시나리오 선택하도록한다.
-    ////string selected = scenarios[Random.Range(0, scenarios.Count)];
 
 
 
     //프롬프트 전달용 시나리오
-    public string ScenarioMaker()
+    public /*string*/ScenarioData ScenarioMaker()
     {
-        string role = roles[Random.Range(0, roles.Count)];
-        string situation = situations[Random.Range(0, situations.Count)];
+        //string role = roles[Random.Range(0, roles.Count)];
+        //string situation = situations[Random.Range(0, situations.Count)];
 
         List<string> emotionKeys = new List<string>(emotionMap.Keys);
         string emotion = emotionKeys[Random.Range(0, emotionKeys.Count)];
-        string emotionTag = emotionMap[emotion];
+        //string emotionTag = emotionMap[emotion];
 
-        string scenario = $"너는 {role}. {situation}. {emotion} 상태야. 항상 대답 맨 앞에 {emotionTag}태그를 붙여서 감정을 표시해.";
-        Debug.Log("생성된 시나리오: " + scenario);
+        //string scenario = $"너는 {role}. {situation}. {emotion} 상태야. 항상 대답 맨 앞에 {emotionTag}태그를 붙여서 감정을 표시해.";
+        //Debug.Log("생성된 시나리오: " + scenario);
 
-        return scenario;
-            //"너는 70대 남성 노인회장이야. 버스 노선이 줄어든 걸 문제 삼고 있어. 매우 분노한 상태야. 항상 대답 맨 앞에 [화남] 태그를 붙여서 감정을 표시해.";
+        return new ScenarioData
+        {
+            role = roles[Random.Range(0, roles.Count)],
+            situation = situations[Random.Range(0, situations.Count)],
+            emotion = emotion,
+            emotionTag = emotionMap[emotion]
+        };
+        //return scenario;
     }
 }

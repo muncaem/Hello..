@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using UnityEngine;
 
 public class ConversationManager : MonoBehaviour
@@ -35,7 +36,12 @@ public class ConversationManager : MonoBehaviour
     public void StartConversation()
     {
         Debug.Log("StartConversation()");
-        currentScenario = scenarioMaker.ScenarioMaker();
+        //currentScenario = scenarioMaker.ScenarioMaker();
+
+        ScenarioData scenarioData = scenarioMaker.ScenarioMaker();
+        currentScenario = $"너는 {scenarioData.role}. {scenarioData.situation}. {scenarioData.emotion} 상태야. " +
+            $"항상 대답 맨 앞에 {scenarioData.emotionTag}태그를 붙여서 감정을 표시해.";
+
         // 1. GPT가 먼저 전화 시작 2. 유저 말 감지 루프는 GPT 응답 끝난 후에 시작되도록 GptRequester에서 처리
         gptRequester.RequestGPT(currentScenario); // GPT가 먼저 발화
 

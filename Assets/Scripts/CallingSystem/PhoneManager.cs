@@ -7,21 +7,17 @@ using static System.Net.Mime.MediaTypeNames;
 public class PhoneManager : MonoBehaviour
 {
     [Header("Screen")]
-    [SerializeField] private GameObject HomeScreen;
-    [SerializeField] private GameObject CallingScreen;
-    [SerializeField] private GameObject InCallScreen;
-    [SerializeField] private GameObject EmptyScreen;
-    [SerializeField] private GameObject SurveyScreen;
+    /*[SerializeField]*/ private GameObject HomeScreen;
+    /*[SerializeField]*/ private GameObject CallingScreen;
+    /*[SerializeField]*/ private GameObject InCallScreen;
+    /*[SerializeField]*/ private GameObject EmptyScreen;
+    /*[SerializeField]*/ private GameObject SurveyScreen;
 
     private UnityEngine.UI.Text EmptyScreenDialogField;
     private GameObject EmptyScreenInputFields;
     private InputField nameField; // 이름 인풋필드
     private InputField determinationField; // 각오 인풋 필드
 
-    [Header("Button")]
-    [SerializeField] private Button CallBtn;
-    [SerializeField] private Button UnCallBtn;
-    //[SerializeField] private Button SendBtn;
 
     private void Awake()
     {
@@ -34,7 +30,8 @@ public class PhoneManager : MonoBehaviour
         // 초기 진단 시, 전화를 받은 이후 설문 UI 대리함수 할당
         DiagnosisSystem.actionFirstCallEndedCall += FirstTestCallSurvey;
 
-
+        // Main 치료 시, 송신 전화 올 경우, UI처리 대리함수 할당
+        DiagnosisSystem.actionStartIncomingCall += OpenCallingScreen;
         // Main 치료 시, 전화 도중 끊겼을 경우 설문 UI 대리함수 할당
         ConversationManager.actionEndedCallbySilence += OpenUnCallbySilenceSurvey;
         // Main 치료 시, 하루 마무리 설문 UI 대리 함수 할당
@@ -50,6 +47,12 @@ public class PhoneManager : MonoBehaviour
         ConversationManager.actionEndedCall += OpenHomeScreen;
 
         // UI 할당
+        HomeScreen = transform.GetChild(0).gameObject;
+        CallingScreen = transform.GetChild(1).gameObject;
+        InCallScreen = transform.GetChild(2).gameObject;
+        EmptyScreen = transform.GetChild(3).gameObject;
+        SurveyScreen = transform.GetChild(4).gameObject;
+
         EmptyScreenDialogField = EmptyScreen.transform.GetChild(0).GetComponent<UnityEngine.UI.Text>();
         EmptyScreenInputFields = EmptyScreen.transform.GetChild(1).gameObject;
         nameField = EmptyScreenInputFields.transform.GetChild(0).GetComponent<InputField>();
@@ -176,5 +179,12 @@ public class PhoneManager : MonoBehaviour
     private void OnDestroy()
     {
         DiagnosisSystem.actionFirstTestUnCall -= FirstTestUnCallSurvey;
+        DiagnosisSystem.actionFirstCallEndedCall -= FirstTestCallSurvey;
+        DiagnosisSystem.actionStartIncomingCall -= OpenCallingScreen;
+        ConversationManager.actionEndedCallbySilence -= OpenUnCallbySilenceSurvey;
+        GameManager.actionEndedDayTime -= OpenEndedDaySurvey;
+        CallSurvey.actionEndedSurvey -= OpenHomeScreen;
+        DiagnosisSystem.actionUnCall -= OpenHomeScreen;
+        ConversationManager.actionEndedCall -= OpenHomeScreen;
     }
 }

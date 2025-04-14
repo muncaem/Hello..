@@ -10,7 +10,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
     public int curSceneNumb { get; private set; }
     private float time = 0; // 누적된 하루치 시간
-    private bool canPlayTime = true;
+    private bool canPlayTime = false;
     private bool canUpdateDay = false;
 
     public int day { get; private set; } // 누적된 날짜
@@ -35,19 +35,46 @@ public class GameManager : MonoBehaviour
         }
 
         curSceneNumb = SceneManager.GetActiveScene().buildIndex;
-        CallSurvey.actionEndedSurvey += MoveScene;
-        CallSurvey.actionEndedSurvey += UpdateDayTimer;
 
-        SetDayCallGap();
+        DiagnosisSystem.actionEndedSaveScore += MoveScene;
+        CallSurvey.actionEndedSurvey += UpdateDayTimer;
     }
 
     // 씬 이동
     private void MoveScene()
     {
-        //if (curSceneNumb > 0) return;
-        StartCoroutine(DelayTime(1f, () => SceneManager.LoadScene(++curSceneNumb)));
+        SceneManager.LoadScene(++curSceneNumb);
         CallSurvey.actionEndedSurvey -= MoveScene;
+    }
+
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // 씬이 실제로 로드 되었을 때 호출됨
+        if (scene.buildIndex == 1)
+        {
+            StartCoroutine(InitDay());
+        }
+    }
+
+    private IEnumerator InitDay()
+    {
+        yield return new WaitForSeconds(1f);
         day = 1;
+        actionUpdatedDay?.Invoke();
+        SetDayCallGap();
+        canPlayTime = true;
+
+        Debug.Log($"SetDayCallGap: {dayCallGap}");
     }
 
     private void Update()
@@ -76,7 +103,7 @@ public class GameManager : MonoBehaviour
     // CallSurvey에서 하루 마무리 survey 완료하면 호출 => 실질적으로 다음 날로 넘어가게 함.
     private void UpdateDayTimer()
     {
-        if (canPlayTime == false)
+        if (canPlayTime == false && curSceneNumb == 1)
         {
             actionUpdatedDay?.Invoke();
 
