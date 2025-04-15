@@ -143,7 +143,7 @@ public class DiagnosisSystem : MonoBehaviour
 
         actionUpdatedOutGoingValue?.Invoke(outGoingCall);
 
-        InComingCall();
+        //InComingCall();
     }
 
 
