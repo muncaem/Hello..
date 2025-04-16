@@ -139,7 +139,8 @@ public class MicRecorder : MonoBehaviour
 #if UNITY_EDITOR
                 Debug.Log("유저 침묵 지속 - 통화 종료 유도");
 #endif
-                actionMicRecorded?.Invoke("유저가 계속 침묵하고 있어. 너는 화가 났고 유저에게 전화를 끊겠다고 말해.");
+                //actionMicRecorded?.Invoke("유저가 계속 침묵하고 있어. 너는 화가 났고 유저에게 전화를 끊겠다고 말해.");
+                actionMicRecorded?.Invoke("__force_system__:유저는 아무 말도 하지 않고 침묵하고 있다. 너는 화가 났고 전화를 끊겠다고 한다.");
 
                 // 회피 요인 추가
                 actionUpdatedFactor?.Invoke("avoid_call");
@@ -147,8 +148,11 @@ public class MicRecorder : MonoBehaviour
                 actionEndedBySilence?.Invoke();
             }
             else
+            {
                 // 발화 불안 요인 추가
                 actionUpdatedFactor?.Invoke("hesitate_speaking");
+                actionMicRecorded?.Invoke("__force_system__:유저는 아무 말도 하지 않고 침묵하고 있다. 너는 잘 들리지 않는다고 한다.");
+            }
         }
         else
         {

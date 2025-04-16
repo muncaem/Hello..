@@ -24,19 +24,25 @@ public class ConversationManager : MonoBehaviour
 
     private void Awake()
     {
-        DiagnosisSystem.OnTakeCall += StartConversation; // 진단 시스템에서 전화를 받았을 경우 대리자 호출
+        DiagnosisSystem.OnTakeCall += StartComingConversation; // 진단 시스템에서 전화를 받았을 경우 대리자 호출
 
         MicRecorder.actionMicRecorded += OnUserSpeechRecognized; // 마이크 리코더에서 stt 변환 이후 대리자 호출
         GptRequester.actionGptReceived += OnGPTReplyReceived; // 지피티 requester에서 gpt 응답 이후 대리자 호출
         TTSChanger.actionTTSEnded += OnTTSEnded; // 지피티 응답 tts 처리 이후 작업 호출
 
         MicRecorder.actionEndedBySilence += OnEndCallbySilence;
+
+        OutGoingCallManager.actionStartedGoingCall += StartGoingConversation;
     }
 
-    public void StartConversation()
+    /// <summary>
+    /// 수신(Incoming) 전화 시작
+    /// </summary>
+    private void StartComingConversation()
     {
-        Debug.Log("StartConversation()");
-        //currentScenario = scenarioMaker.ScenarioMaker();
+#if UNITY_EDITOR
+        Debug.Log("StartComingConversation()");
+#endif
 
         ScenarioData scenarioData = scenarioMaker.ScenarioMaker();
         currentScenario = $"너는 {scenarioData.role}. {scenarioData.situation}. {scenarioData.emotion} 상태야. " +
@@ -45,6 +51,20 @@ public class ConversationManager : MonoBehaviour
         // 1. GPT가 먼저 전화 시작 2. 유저 말 감지 루프는 GPT 응답 끝난 후에 시작되도록 GptRequester에서 처리
         gptRequester.RequestGPT(currentScenario); // GPT가 먼저 발화
 
+        GlobalCallState = true;
+    }
+
+    /// <summary>
+    /// 송신(Outgoing) 전화 시작
+    /// </summary>
+    private void StartGoingConversation(ScenarioData data)
+    {
+#if UNITY_EDITOR
+        Debug.Log("StartGoingConversation()");
+#endif
+        currentScenario = $"너는 {data.role}. {data.situation}. {data.emotion} 상태야. " +
+            $"항상 대답 맨 앞에 {data.emotionTag}태그를 붙여서 감정을 표시해.";
+        gptRequester.RequestGPT(currentScenario);
         GlobalCallState = true;
     }
 
@@ -61,17 +81,26 @@ public class ConversationManager : MonoBehaviour
 
         if (isEnd)
         {
+            Debug.Log("전화 종료 처리!");
+
             isConversationEnded = true; // 대화 종료 경우
             GlobalCallState = false;
-            //Debug.Log("전화 종료 처리!");
 
             if (isEndCallbySilence)
             {
                 actionEndedCallbySilence?.Invoke();
                 isEndCallbySilence = false;
+#if UNITY_EDITOR
+                Debug.Log("전화 종료 처리 - 침묵에 의해");
+#endif
             }
             else
+            {
                 actionEndedCall?.Invoke();
+#if UNITY_EDITOR
+                Debug.Log("전화 종료 처리!");
+#endif
+            }
 
             return;
         }

@@ -1,34 +1,52 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using static System.Net.Mime.MediaTypeNames;
 
 public class PhoneManager : MonoBehaviour
 {
     [Header("Screen")]
-    /*[SerializeField]*/ private GameObject HomeScreen;
-    /*[SerializeField]*/ private GameObject CallingScreen;
-    /*[SerializeField]*/ private GameObject InCallScreen;
-    /*[SerializeField]*/ private GameObject EmptyScreen;
-    /*[SerializeField]*/ private GameObject SurveyScreen;
+    private GameObject HomeScreen;
+    private GameObject CallingScreen;
+    private GameObject InCallScreen;
+    private GameObject EmptyScreen;
+    private GameObject SurveyScreen;
+    private GameObject KeypadScreen;
+
+    [Header("Regarded_Keypad")]
+    [SerializeField] private UnityEngine.UI.Text numberField;
+    private string inputNumber = "";
+    private string outgoingNumber;
 
     private UnityEngine.UI.Text EmptyScreenDialogField;
     private GameObject EmptyScreenInputFields;
     private InputField nameField; // 이름 인풋필드
     private InputField determinationField; // 각오 인풋 필드
 
+    [Header("Regarded_Complaint")]
+    [SerializeField] private GameObject complaintMsgIcon;
+    [SerializeField] private UnityEngine.UI.Text complaintScreenText;
+    private string complainContent;
+    public static bool isProcessedComplain { get; private set; } = false;
+
+    public static Action actionConnectedGoingCall;
+
 
     private void Awake()
     {
-        // 게임 시작 버튼 눌렀을 경우, 게임 진입 FadeIn 후 UI처리 대리함수 할당
-        InteractiveButton.actionEndedFadeIn += OpenCallingScreen;
 
-
-        // 초기 진단 시, 전화를 받지 않았을 경우 UI처리 대리함수 할당
-        DiagnosisSystem.actionFirstTestUnCall += FirstTestUnCallSurvey;
-        // 초기 진단 시, 전화를 받은 이후 설문 UI 대리함수 할당
-        DiagnosisSystem.actionFirstCallEndedCall += FirstTestCallSurvey;
+        if (GameManager.Instance.curSceneNumb == 0)
+        {
+            // 게임 시작 버튼 눌렀을 경우, 게임 진입 FadeIn 후 UI처리 대리함수 할당
+            InteractiveButton.actionEndedFadeIn += OpenCallingScreen;
+            // 초기 진단 시, 전화를 받지 않았을 경우 UI처리 대리함수 할당
+            DiagnosisSystem.actionFirstTestUnCall += FirstTestUnCallSurvey;
+            // 초기 진단 시, 전화를 받은 이후 설문 UI 대리함수 할당
+            DiagnosisSystem.actionFirstCallEndedCall += FirstTestCallSurvey;
+        }
 
         // Main 치료 시, 송신 전화 올 경우, UI처리 대리함수 할당
         DiagnosisSystem.actionStartIncomingCall += OpenCallingScreen;
@@ -39,12 +57,16 @@ public class PhoneManager : MonoBehaviour
         GameManager.actionEndedDayTime += OpenEndedDaySurvey;
 
         // Home Screen으로 콜백 할 델리게이트
-        // 설문 이후
+        // 설문 이후 홈 이동
         CallSurvey.actionEndedSurvey += OpenHomeScreen;
-        // 전화 거절 이후
+        // 전화 거절 이후 홈 이동
         DiagnosisSystem.actionUnCall += OpenHomeScreen;
-        // 전화 완료 이후
+        // 전화 완료 이후 홈 이동
         ConversationManager.actionEndedCall += OpenHomeScreen;
+
+        // 진행 중인 수신 전화 내용 업데이트 시마다 호출
+        OutGoingCallManager.actionUpdatedScenario += UpdatedCurrentOutgoingCallContent;
+        //ConversationManager.actionEndedCall += UpdatedEndCall;
 
         // UI 할당
         HomeScreen = transform.GetChild(0).gameObject;
@@ -52,6 +74,7 @@ public class PhoneManager : MonoBehaviour
         InCallScreen = transform.GetChild(2).gameObject;
         EmptyScreen = transform.GetChild(3).gameObject;
         SurveyScreen = transform.GetChild(4).gameObject;
+        KeypadScreen = transform.GetChild(5).gameObject;
 
         EmptyScreenDialogField = EmptyScreen.transform.GetChild(0).GetComponent<UnityEngine.UI.Text>();
         EmptyScreenInputFields = EmptyScreen.transform.GetChild(1).gameObject;
@@ -63,7 +86,18 @@ public class PhoneManager : MonoBehaviour
     private void OpenHomeScreen()
     {
         HomeScreen.SetActive(true);
+        SurveyScreen.SetActive(false);
+        CallingScreen.SetActive(false);
+        InCallScreen.SetActive(false);
+        KeypadScreen.SetActive(false);
+
+        if (GameManager.Instance.curSceneNumb == 0) return;
+
+        // 민원처리 완료 시 비활성화 필요
+        complaintMsgIcon.SetActive(true);
+        complaintScreenText.text = complainContent;
     }
+
 
     /// <summary>
     /// 전화 오는 화면 UI 활성화
@@ -76,6 +110,17 @@ public class PhoneManager : MonoBehaviour
 
         if (InteractiveButton.actionEndedFadeIn != null)
             InteractiveButton.actionEndedFadeIn -= OpenCallingScreen;
+    }
+
+    /// <summary>
+    /// 현재 송신 전화로 걸어야하는 전화번호 업데이트
+    /// </summary>
+    /// <param name="content"></param>
+    /// <param name="number">송신 전화번호</param>
+    private void UpdatedCurrentOutgoingCallContent(ScenarioData data, string number)
+    {
+        outgoingNumber = number.Replace("-", "");
+        complainContent = MainUIManager.complaintPaper_content.text;
     }
 
     /// <summary>
@@ -108,7 +153,49 @@ public class PhoneManager : MonoBehaviour
         }));
     }
 
+    /// <summary>
+    /// 키패드 버튼과 연결
+    /// </summary>
+    public void PushedKeypad()
+    {
+        if (inputNumber.Length >= 9)
+            return;
 
+        inputNumber += EventSystem.current.currentSelectedGameObject.name;
+        numberField.text = inputNumber;
+    }
+
+    /// <summary>
+    /// 키패드의 전화 버튼과 연결, inputNumber 가져와서 민원 전화번호랑 같으면 전화 연결
+    /// </summary>
+    public void KeypadCallButton()
+    {
+        // 전화 연결 - 민원의 내용과 연결해서 델리게이트 호출
+        if (outgoingNumber == inputNumber)
+        {
+            isProcessedComplain = true;
+
+            InCallScreen.gameObject.SetActive(true);
+            KeypadScreen.gameObject.SetActive(false);
+            actionConnectedGoingCall?.Invoke();
+            inputNumber = "";
+            numberField.text = "";
+        }
+        // 전화 번호 다를 경우
+        else { }
+    }
+
+    /// <summary>
+    /// 키패드의 삭제 버튼과 연결, inputNumber의 마지막 숫자를 지움
+    /// </summary>
+    public void KeypadDelButton()
+    {
+        if (inputNumber.Length == 0)
+            return;
+
+        inputNumber = inputNumber.Remove(inputNumber.Length - 1);
+        numberField.text = inputNumber;
+    }
 
 
 
@@ -178,8 +265,12 @@ public class PhoneManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        DiagnosisSystem.actionFirstTestUnCall -= FirstTestUnCallSurvey;
-        DiagnosisSystem.actionFirstCallEndedCall -= FirstTestCallSurvey;
+        if (GameManager.Instance.curSceneNumb == 0)
+        {
+            InteractiveButton.actionEndedFadeIn -= OpenCallingScreen;
+            DiagnosisSystem.actionFirstTestUnCall -= FirstTestUnCallSurvey;
+            DiagnosisSystem.actionFirstCallEndedCall -= FirstTestCallSurvey;
+        }
         DiagnosisSystem.actionStartIncomingCall -= OpenCallingScreen;
         ConversationManager.actionEndedCallbySilence -= OpenUnCallbySilenceSurvey;
         GameManager.actionEndedDayTime -= OpenEndedDaySurvey;

@@ -65,7 +65,7 @@ public class DiagnosisSystem : MonoBehaviour
         CallSurvey.actionEndedSurvey += ReturnFinalScore;
         MicRecorder.actionUpdatedFactor += UpdateScoreBySituation;
         GameManager.actionUpdatedDay += StartMainTherapy; // 하루가 지날때마다 송신/수신량 결정
-        GameManager.actionUpdatedCall += InComingCall; // n초마다 전화 오게 함
+        //GameManager.actionUpdatedCall += InComingCall; // n초마다 전화 오게 함
         ConversationManager.actionEndedCall += RefreshCallState;
     }
 
@@ -183,7 +183,7 @@ public class DiagnosisSystem : MonoBehaviour
         if (isFirstScene == true)
             CheckForFirstData(); // 초기 진단용 음성 대화
         else
-            OnTakeCall?.Invoke(); // 전화를 받았을 경우 실행되는 델리게이트 => StartConversation()
+            OnTakeCall?.Invoke(); // 전화를 받았을 경우 실행되는 델리게이트 => StartComingConversation()
     }
 
     /// <summary>
@@ -199,7 +199,12 @@ public class DiagnosisSystem : MonoBehaviour
         Debug.Log("PreFactor: " + preFactor);
 #endif
         if (isFirstScene == true)
+        {
             actionFirstTestUnCall?.Invoke(dialogs[0]); // 초기 진단 전화 거절로 텍스트로 진행
+
+            TTSChanger.actionTTSEnded -= OnTTSEnded;
+            MicRecorder.actionMicRecorded -= OnRecordEnded;
+        }
         else
         {
             outGoingCall++; // 거절 시, 수신 전화 추가
