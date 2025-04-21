@@ -93,9 +93,12 @@ public class PhoneManager : MonoBehaviour
 
         if (GameManager.Instance.curSceneNumb == 0) return;
 
-        // 민원처리 완료 시 비활성화 필요
-        complaintMsgIcon.SetActive(true);
-        complaintScreenText.text = complainContent;
+        if (isProcessedComplain)
+        {
+            // 민원처리 완료 시 비활성화 필요
+            complaintMsgIcon.SetActive(true);
+            complaintScreenText.text = complainContent;
+        }
     }
 
 
@@ -211,6 +214,10 @@ public class PhoneManager : MonoBehaviour
                 StartCoroutine(GameManager.Instance.FadeIn(img, 0.5f, () => { })); // 페이드인
 
             SurveyScreen.transform.GetChild(0).gameObject.SetActive(true);
+
+            InteractiveButton.actionEndedFadeIn -= OpenCallingScreen;
+            DiagnosisSystem.actionFirstTestUnCall -= FirstTestUnCallSurvey;
+            DiagnosisSystem.actionFirstCallEndedCall -= FirstTestCallSurvey;
         }));
     }
 
@@ -260,6 +267,9 @@ public class PhoneManager : MonoBehaviour
 #if UNITY_EDITOR
         Debug.Log($"초기 진단 종료 - 유저 이름: {UserData.Instance.userName}, 각오 한마디: {UserData.Instance.userDetermination}");
 #endif
+        InteractiveButton.actionEndedFadeIn -= OpenCallingScreen;
+        DiagnosisSystem.actionFirstTestUnCall -= FirstTestUnCallSurvey;
+        DiagnosisSystem.actionFirstCallEndedCall -= FirstTestCallSurvey;
     }
 
 

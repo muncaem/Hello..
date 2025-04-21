@@ -8,6 +8,7 @@ using static System.Net.Mime.MediaTypeNames;
 
 public class DiagnosisSystem : MonoBehaviour
 {
+    public static DiagnosisSystem Instance;
     ///  <summary>
     /// 유저 요인 정보 임시 할당
     private int preFactor = 0; // 회피 증세 - 전화를 안 받거나 피함
@@ -17,8 +18,8 @@ public class DiagnosisSystem : MonoBehaviour
     private int preUserDataReply = 0; // 초기 진단 시, 유저 대답 횟수 체크
     /// </summary>
 
-    // 초기 진단 확인용 bool값
-    private bool isFirstScene;
+    //// 초기 진단 확인용 bool값
+    //private bool isFirstScene;
     // 기회 내 전화 받았는지 여부 체크 및 현재 전화 중인지 체크 => 회피 요인 +1
     public static bool isCalled { get; private set; } = false;
     // 전화 받을 기회
@@ -49,14 +50,17 @@ public class DiagnosisSystem : MonoBehaviour
     public static Action<int> actionUpdatedOutGoingValue; // 날마다 업데이트 되는 수신 통화량
     public static Action actionStartIncomingCall;
 
+    private Coroutine waitCallCoroutine;
 
     private void Awake()
     {
-        isFirstScene = SceneManager.GetActiveScene().buildIndex == 0 ? true : false;
-        if (SceneManager.GetActiveScene().name.Contains("Start"))
-            isFirstScene = true;
+        if (Instance == null) Instance = this;
 
-        if (isFirstScene)
+        //isFirstScene = SceneManager.GetActiveScene().buildIndex == 0 ? true : false;
+        //if (SceneManager.GetActiveScene().name.Contains("Start"))
+        //    isFirstScene = true;
+
+        if (GameManager.Instance.curSceneNumb == 0)
         {
             TTSChanger.actionTTSEnded += OnTTSEnded;
             MicRecorder.actionMicRecorded += OnRecordEnded;
@@ -65,7 +69,7 @@ public class DiagnosisSystem : MonoBehaviour
         CallSurvey.actionEndedSurvey += ReturnFinalScore;
         MicRecorder.actionUpdatedFactor += UpdateScoreBySituation;
         GameManager.actionUpdatedDay += StartMainTherapy; // 하루가 지날때마다 송신/수신량 결정
-        //GameManager.actionUpdatedCall += InComingCall; // n초마다 전화 오게 함
+        GameManager.actionUpdatedCall += InComingCall; // n초마다 전화 오게 함
         ConversationManager.actionEndedCall += RefreshCallState;
     }
 
@@ -93,7 +97,7 @@ public class DiagnosisSystem : MonoBehaviour
         yield return null;
 
         // 3번 벨 울린 이후, 전화 받지 않은 것으로 간주
-        if (isFirstScene) // 초기 진단일 경우
+        if (GameManager.Instance.curSceneNumb == 0) // 초기 진단일 경우
             actionFirstTestUnCall?.Invoke(dialogs[0]);
         // Main 치료 경우
         else
@@ -144,6 +148,17 @@ public class DiagnosisSystem : MonoBehaviour
         actionUpdatedOutGoingValue?.Invoke(outGoingCall);
 
         //InComingCall();
+        // 첫 시작 call
+        if (!isCalled)
+        {
+            actionStartIncomingCall?.Invoke();
+            if (waitCallCoroutine != null)
+            {
+                StopCoroutine(waitCallCoroutine);
+                waitCallCoroutine = null;
+            }
+            waitCallCoroutine = StartCoroutine(WaitForUserCallResponse());
+        }
     }
 
 
@@ -162,12 +177,30 @@ public class DiagnosisSystem : MonoBehaviour
         if (isCalled) return;
 
         // 하루 시작하자마자 n초 후 전화 오게 함
-        StartCoroutine(GameManager.Instance.DelayTime(3f, () =>
+        actionStartIncomingCall?.Invoke();
+        // 휴대폰에 전화오는 UI 띄우기
+
+        if (waitCallCoroutine != null)
         {
-            actionStartIncomingCall?.Invoke();
-            // 휴대폰에 전화오는 UI 띄우기
-            StartCoroutine(InitCheck());
-        }));
+            StopCoroutine(waitCallCoroutine);
+            waitCallCoroutine = null;
+        }
+        waitCallCoroutine = StartCoroutine(WaitForUserCallResponse());
+    }
+    private IEnumerator WaitForUserCallResponse() /// incomming call 받을 때까지 대기
+    {
+        yield return new WaitForSeconds(0.5f);
+
+        for (int i = 0; i < TakeCallChance; i++)
+        {
+            if (!isCalled)
+            {
+                SoundManager.instance.Play("bell");
+                yield return new WaitForSeconds(4);
+            }
+        }
+        //actionUnCall?.Invoke();
+        UnTakeCall();
     }
 
 
@@ -180,7 +213,7 @@ public class DiagnosisSystem : MonoBehaviour
         StopAllCoroutines();
         isCalled = true;
 
-        if (isFirstScene == true)
+        if (GameManager.Instance.curSceneNumb == 0)
             CheckForFirstData(); // 초기 진단용 음성 대화
         else
             OnTakeCall?.Invoke(); // 전화를 받았을 경우 실행되는 델리게이트 => StartComingConversation()
@@ -191,14 +224,19 @@ public class DiagnosisSystem : MonoBehaviour
     /// </summary>
     public void UnTakeCall()
     {
-        SoundManager.instance.Clear();
         StopAllCoroutines();
+        if (waitCallCoroutine != null)
+        {
+            StopCoroutine(waitCallCoroutine);
+            waitCallCoroutine = null;
+        }
+        SoundManager.instance.Clear();
         preFactor++; //사전 증세 요인 + 1
 
 #if UNITY_EDITOR
         Debug.Log("PreFactor: " + preFactor);
 #endif
-        if (isFirstScene == true)
+        if (GameManager.Instance.curSceneNumb == 0)
         {
             actionFirstTestUnCall?.Invoke(dialogs[0]); // 초기 진단 전화 거절로 텍스트로 진행
 

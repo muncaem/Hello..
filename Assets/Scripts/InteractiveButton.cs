@@ -40,8 +40,28 @@ public class InteractiveButton : MonoBehaviour
     public void ActiveObject(GameObject obj)
     {
         obj.SetActive(true); // 오브젝트 활성화
-        if (obj.TryGetComponent<Image>(out var img))
+        if (obj.TryGetComponent<Image>(out var img) && this.gameObject.activeSelf)
             StartCoroutine(GameManager.Instance.FadeIn(img, 0.5f, () => { })); // 페이드인
 
+    }
+
+    public void SetUnTakeCallButton(Button btn)
+    {
+        //btn.onClick.RemoveAllListeners(); // 코드에서 여러 번 AddListener() 호출될 가능성 있을 경우 사용
+        btn.onClick.AddListener(() =>
+        {
+            if (DiagnosisSystem.Instance != null)
+                DiagnosisSystem.Instance.UnTakeCall();
+        });
+    }
+
+    public void SetTakeCallButton(Button btn)
+    {
+        //btn.onClick.RemoveAllListeners(); // 코드에서 여러 번 AddListener() 호출될 가능성 있을 경우 사용
+        btn.onClick.AddListener(() =>
+        {
+            if (DiagnosisSystem.Instance != null)
+                DiagnosisSystem.Instance.TakeCall();
+        });
     }
 }
