@@ -41,7 +41,6 @@ public class DiagnosisSystem : MonoBehaviour
     [Header("DiagnosisText")]
     [SerializeField] private string[] dialogs; // 다이얼로그
 
-
     public static Action OnTakeCall; // 진단시스템으로부터 오는 전화를 받았을 경우 ConversationManager의 대화 시작
     public static Action<string> actionFirstTestUnCall;
     public static Action actionFirstCallEndedCall;
@@ -70,7 +69,31 @@ public class DiagnosisSystem : MonoBehaviour
         MicRecorder.actionUpdatedFactor += UpdateScoreBySituation;
         GameManager.actionUpdatedDay += StartMainTherapy; // 하루가 지날때마다 송신/수신량 결정
         GameManager.actionUpdatedCall += InComingCall; // n초마다 전화 오게 함
+        GameManager.actionChangedScene += OnChangedScene;
         ConversationManager.actionEndedCall += RefreshCallState;
+
+        PhoneManager.actionConnectedComingCall += TakeCallDiagnosis;
+        PhoneManager.actionDisconnectedComingCall += UnTakeCallDiagnosis;
+    }
+
+    private void OnChangedScene()
+    {
+        // 델리게이트 해제
+        TTSChanger.actionTTSEnded -= OnTTSEnded;
+        MicRecorder.actionMicRecorded -= OnRecordEnded;
+
+        PhoneManager.actionConnectedComingCall -= TakeCallDiagnosis;
+        PhoneManager.actionDisconnectedComingCall -= UnTakeCallDiagnosis;
+
+        StartCoroutine(RebindPhoneManagerActions());
+    }
+    private IEnumerator RebindPhoneManagerActions()
+    {
+        Debug.Log("RebindPhoneManagerActions In");
+        yield return new WaitUntil(() => FindObjectOfType<PhoneManager>() != null);
+        Debug.Log("RebindPhoneManagerActions end wait");
+        PhoneManager.actionConnectedComingCall += TakeCallDiagnosis;
+        PhoneManager.actionDisconnectedComingCall += UnTakeCallDiagnosis;
     }
 
     /// <summary>
@@ -79,34 +102,38 @@ public class DiagnosisSystem : MonoBehaviour
     public void StartDiagnosis()
     {
         //초기 전화 받기/거절 테스트
-        StartCoroutine(InitCheck());
-    }
-    private IEnumerator InitCheck()
-    {
-        yield return new WaitForSeconds(1.5f);
-
-        for (int i = 0; i < TakeCallChance; i++)
+        //StartCoroutine(InitCheck());
+        StartCoroutine(GameManager.Instance.DelayTime(1.5f, () =>
         {
-            if (!isCalled)
-            {
-                SoundManager.instance.Play("bell");
-
-                yield return new WaitForSeconds(4);
-            }
-        }
-        yield return null;
-
-        // 3번 벨 울린 이후, 전화 받지 않은 것으로 간주
-        if (GameManager.Instance.curSceneNumb == 0) // 초기 진단일 경우
-            actionFirstTestUnCall?.Invoke(dialogs[0]);
-        // Main 치료 경우
-        else
-        {
-            actionUnCall?.Invoke();
-        }
-
-        UnTakeCall();
+            actionStartIncomingCall?.Invoke();
+        }));
     }
+    //private IEnumerator InitCheck()
+    //{
+    //    yield return new WaitForSeconds(1.5f);
+
+    //    for (int i = 0; i < TakeCallChance; i++)
+    //    {
+    //        if (!isCalled)
+    //        {
+    //            SoundManager.instance.Play("bell");
+
+    //            yield return new WaitForSeconds(4);
+    //        }
+    //    }
+    //    yield return null;
+
+    //    // 3번 벨 울린 이후, 전화 받지 않은 것으로 간주
+    //    if (GameManager.Instance.curSceneNumb == 0) // 초기 진단일 경우
+    //        actionFirstTestUnCall?.Invoke(dialogs[0]);
+    //    // Main 치료 경우
+    //    else
+    //    {
+    //        actionUnCall?.Invoke();
+    //    }
+
+    //    UnTakeCall();
+    //}
 
 
     /// <summary>
@@ -145,20 +172,25 @@ public class DiagnosisSystem : MonoBehaviour
 
         Debug.Log($"outgoingcall: {outGoingCall}, incomingcall: {inCompingCall}");
 
+
         actionUpdatedOutGoingValue?.Invoke(outGoingCall);
 
-        //InComingCall();
-        // 첫 시작 call
-        if (!isCalled)
-        {
-            actionStartIncomingCall?.Invoke();
-            if (waitCallCoroutine != null)
-            {
-                StopCoroutine(waitCallCoroutine);
-                waitCallCoroutine = null;
-            }
-            waitCallCoroutine = StartCoroutine(WaitForUserCallResponse());
-        }
+        //// 첫 시작 call
+        //actionStartIncomingCall?.Invoke();
+
+        //StartCoroutine(GameManager.Instance.DelayTime(1.5f, () =>
+        //{
+        //    if (!isCalled)
+        //    {
+        //        actionStartIncomingCall?.Invoke();
+        //        if (waitCallCoroutine != null)
+        //        {
+        //            StopCoroutine(waitCallCoroutine);
+        //            waitCallCoroutine = null;
+        //        }
+        //        waitCallCoroutine = StartCoroutine(WaitForUserCallResponse());
+        //    }
+        //}));
     }
 
 
@@ -178,39 +210,45 @@ public class DiagnosisSystem : MonoBehaviour
 
         // 하루 시작하자마자 n초 후 전화 오게 함
         actionStartIncomingCall?.Invoke();
-        // 휴대폰에 전화오는 UI 띄우기
+        // 휴대폰에 전화오는 UI 및 사운드 띄우기
 
-        if (waitCallCoroutine != null)
-        {
-            StopCoroutine(waitCallCoroutine);
-            waitCallCoroutine = null;
-        }
-        waitCallCoroutine = StartCoroutine(WaitForUserCallResponse());
+        //if (waitCallCoroutine != null)
+        //{
+        //    StopCoroutine(waitCallCoroutine);
+        //    waitCallCoroutine = null;
+        //}
+        //waitCallCoroutine = StartCoroutine(WaitForUserCallResponse());
     }
-    private IEnumerator WaitForUserCallResponse() /// incomming call 받을 때까지 대기
-    {
-        yield return new WaitForSeconds(0.5f);
+    //private IEnumerator WaitForUserCallResponse() /// incomming call 받을 때까지 대기
+    //{
+    //    yield return new WaitForSeconds(0.5f);
 
-        for (int i = 0; i < TakeCallChance; i++)
-        {
-            if (!isCalled)
-            {
-                SoundManager.instance.Play("bell");
-                yield return new WaitForSeconds(4);
-            }
-        }
-        //actionUnCall?.Invoke();
-        UnTakeCall();
-    }
+    //    for (int i = 0; i < TakeCallChance; i++)
+    //    {
+    //        if (!isCalled)
+    //        {
+    //            SoundManager.instance.Play("bell");
+    //            yield return new WaitForSeconds(4);
+    //        }
+    //    }
+    //    //actionUnCall?.Invoke();
+    //    UnTakeCall();
+    //}
 
 
     /// <summary>
     /// 전화 받기 버튼 눌렀을 경우
     /// </summary>
-    public void TakeCall()
+    public void TakeCallDiagnosis()
     {
-        SoundManager.instance.Clear();
-        StopAllCoroutines();
+        //SoundManager.instance.Clear();
+        //StopAllCoroutines();
+        //if (waitCallCoroutine != null)
+        //{
+        //    StopCoroutine(waitCallCoroutine);
+        //    waitCallCoroutine = null;
+        //}
+
         isCalled = true;
 
         if (GameManager.Instance.curSceneNumb == 0)
@@ -222,15 +260,16 @@ public class DiagnosisSystem : MonoBehaviour
     /// <summary>
     /// 전화 끊기 버튼 / 나중에 보기 버튼 눌렀을 경우
     /// </summary>
-    public void UnTakeCall()
+    public void UnTakeCallDiagnosis()
     {
-        StopAllCoroutines();
-        if (waitCallCoroutine != null)
-        {
-            StopCoroutine(waitCallCoroutine);
-            waitCallCoroutine = null;
-        }
-        SoundManager.instance.Clear();
+        //SoundManager.instance.Clear();
+        //StopAllCoroutines();
+        //if (waitCallCoroutine != null)
+        //{
+        //    StopCoroutine(waitCallCoroutine);
+        //    waitCallCoroutine = null;
+        //}
+
         preFactor++; //사전 증세 요인 + 1
 
 #if UNITY_EDITOR
@@ -239,9 +278,6 @@ public class DiagnosisSystem : MonoBehaviour
         if (GameManager.Instance.curSceneNumb == 0)
         {
             actionFirstTestUnCall?.Invoke(dialogs[0]); // 초기 진단 전화 거절로 텍스트로 진행
-
-            TTSChanger.actionTTSEnded -= OnTTSEnded;
-            MicRecorder.actionMicRecorded -= OnRecordEnded;
         }
         else
         {
@@ -353,9 +389,9 @@ public class DiagnosisSystem : MonoBehaviour
 
             isCalled = false; // 초기 진단 전화 종료
 
-            // 델리게이트 해제
-            TTSChanger.actionTTSEnded -= OnTTSEnded;
-            MicRecorder.actionMicRecorded -= OnRecordEnded;
+            //// 델리게이트 해제
+            //TTSChanger.actionTTSEnded -= OnTTSEnded;
+            //MicRecorder.actionMicRecorded -= OnRecordEnded;
             return;
         }
     }

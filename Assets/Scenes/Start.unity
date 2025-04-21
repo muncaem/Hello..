@@ -7081,9 +7081,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 329584680}
-        m_TargetAssemblyTypeName: DiagnosisSystem, Assembly-CSharp
-        m_MethodName: UnTakeCall
+      - m_Target: {fileID: 1046785392}
+        m_TargetAssemblyTypeName: PhoneManager, Assembly-CSharp
+        m_MethodName: UnTakeCallButton
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -8573,9 +8573,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 329584680}
-        m_TargetAssemblyTypeName: DiagnosisSystem, Assembly-CSharp
-        m_MethodName: TakeCall
+      - m_Target: {fileID: 1046785392}
+        m_TargetAssemblyTypeName: PhoneManager, Assembly-CSharp
+        m_MethodName: TakeCallButton
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -9398,9 +9398,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 329584680}
-        m_TargetAssemblyTypeName: DiagnosisSystem, Assembly-CSharp
-        m_MethodName: UnTakeCall
+      - m_Target: {fileID: 1046785392}
+        m_TargetAssemblyTypeName: PhoneManager, Assembly-CSharp
+        m_MethodName: UnTakeCallButton
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -10616,9 +10616,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 329584680}
-        m_TargetAssemblyTypeName: DiagnosisSystem, Assembly-CSharp
-        m_MethodName: UnTakeCall
+      - m_Target: {fileID: 1046785392}
+        m_TargetAssemblyTypeName: PhoneManager, Assembly-CSharp
+        m_MethodName: UnTakeCallButton
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

@@ -51,6 +51,7 @@ public class ConversationManager : MonoBehaviour
         // 1. GPT가 먼저 전화 시작 2. 유저 말 감지 루프는 GPT 응답 끝난 후에 시작되도록 GptRequester에서 처리
         gptRequester.RequestGPT(currentScenario); // GPT가 먼저 발화
 
+        isConversationEnded = false;
         GlobalCallState = true;
     }
 
@@ -81,28 +82,28 @@ public class ConversationManager : MonoBehaviour
 
         if (isEnd)
         {
-            Debug.Log("전화 종료 처리!");
+            Debug.Log("전화 종료 처리중");
 
-            isConversationEnded = true; // 대화 종료 경우
-            GlobalCallState = false;
+            isConversationEnded = true; // 대화 종료 포인트 경우
+//            GlobalCallState = false;
 
-            if (isEndCallbySilence)
-            {
-                actionEndedCallbySilence?.Invoke();
-                isEndCallbySilence = false;
-#if UNITY_EDITOR
-                Debug.Log("전화 종료 처리 - 침묵에 의해");
-#endif
-            }
-            else
-            {
-                actionEndedCall?.Invoke();
-#if UNITY_EDITOR
-                Debug.Log("전화 종료 처리!");
-#endif
-            }
+//            if (isEndCallbySilence)
+//            {
+//                actionEndedCallbySilence?.Invoke();
+//                isEndCallbySilence = false;
+//#if UNITY_EDITOR
+//                Debug.Log("전화 종료 처리 - 침묵에 의해");
+//#endif
+//            }
+//            else
+//            {
+//                actionEndedCall?.Invoke();
+//#if UNITY_EDITOR
+//                Debug.Log("전화 종료 처리!");
+//#endif
+//            }
 
-            return;
+//            return;
         }
     }
     /// <summary>
@@ -124,8 +125,30 @@ public class ConversationManager : MonoBehaviour
     // GPT 응답 TTS 이후 마이크 녹음 재시작
     private void OnTTSEnded()
     {
-        if (isConversationEnded) return;
+        if (isConversationEnded)
+        {
+            GlobalCallState = false; // AI의 마지막 말로 끝까지 끝났을 때 체크
 
+            if (isEndCallbySilence)
+            {
+                actionEndedCallbySilence?.Invoke();
+                isEndCallbySilence = false;
+#if UNITY_EDITOR
+                Debug.Log("전화 종료 처리 - 침묵에 의해");
+#endif
+            }
+            else
+            {
+                actionEndedCall?.Invoke();
+#if UNITY_EDITOR
+                Debug.Log("전화 종료 처리!");
+#endif
+            }
+
+            return;
+        }
+
+        // Conversation 끝나지 않았을 경우
         micRecorder.StartRecording(); // TTS 끝나면 마이크 시작
     }
 

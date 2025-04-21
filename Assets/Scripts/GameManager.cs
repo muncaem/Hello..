@@ -10,6 +10,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
     public int curSceneNumb { get; private set; }
     private float time = 0; // 누적된 하루치 시간
+    private float gapTime = 0;
     private bool canPlayTime = false;
     private bool canUpdateDay = false;
 
@@ -21,6 +22,7 @@ public class GameManager : MonoBehaviour
     public static Action actionUpdatedDay;
     public static Action actionUpdatedCall;
     public static Action actionEndedDayTime;
+    public static Action actionChangedScene;
 
     private void Awake()
     {
@@ -63,6 +65,7 @@ public class GameManager : MonoBehaviour
         if (scene.buildIndex == 1)
         {
             StartCoroutine(InitDay());
+            actionChangedScene?.Invoke();
         }
     }
 
@@ -87,10 +90,31 @@ public class GameManager : MonoBehaviour
     {
         time += Time.deltaTime;
 
-        if (time >= dayCallGap)
-            // 하루 당 수신 call gap 지날 때마다 시간 알림 델리게이트
-            actionUpdatedCall?.Invoke();
+        //gapTime += Time.deltaTime;
 
+        //if (gapTime >= dayCallGap && !ConversationManager.GlobalCallState)
+        //{
+        //    // 하루 당 수신 call gap 지날 때마다 시간 알림 델리게이트
+        //    actionUpdatedCall?.Invoke();
+
+        //    // 다음 call gap 설정
+        //    SetDayCallGap();
+        //    gapTime = 0;
+        //}
+
+        // 전화 중이 아니면 gapTime 쌓기
+        if (!ConversationManager.GlobalCallState)
+            gapTime += Time.deltaTime;
+
+        // 전화 간격 도달 시
+        if (gapTime >= dayCallGap)
+        {
+            actionUpdatedCall?.Invoke();
+            SetDayCallGap();
+            gapTime = 0f;
+        }
+
+        // 하루 종료 조건
         if ((time >= secondsPerDay && ConversationManager.GlobalCallState == false) 
             /*|| ConversationManager. // 하루 치 통화 할당량 다 채웠을 경우*/)
         {
@@ -108,6 +132,7 @@ public class GameManager : MonoBehaviour
             actionUpdatedDay?.Invoke();
 
             time = 0;
+            gapTime = 0;
             day += 1;
 
             canPlayTime = true;

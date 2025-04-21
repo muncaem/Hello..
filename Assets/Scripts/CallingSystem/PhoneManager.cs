@@ -33,11 +33,15 @@ public class PhoneManager : MonoBehaviour
     public static bool isProcessedComplain { get; private set; } = false;
 
     public static Action actionConnectedGoingCall;
+    public static Action actionDisconnectedComingCall;
+    public static Action actionConnectedComingCall;
+
+    // 전화 받을 기회
+    private int TakeCallChance = 3;
 
 
     private void Awake()
     {
-
         if (GameManager.Instance.curSceneNumb == 0)
         {
             // 게임 시작 버튼 눌렀을 경우, 게임 진입 FadeIn 후 UI처리 대리함수 할당
@@ -48,7 +52,8 @@ public class PhoneManager : MonoBehaviour
             DiagnosisSystem.actionFirstCallEndedCall += FirstTestCallSurvey;
         }
 
-        // Main 치료 시, 송신 전화 올 경우, UI처리 대리함수 할당
+        // Main 치료 시, 송신 전화 올 경우, 사운드 및 UI처리 대리함수 할당
+        DiagnosisSystem.actionStartIncomingCall += RingingCall;
         DiagnosisSystem.actionStartIncomingCall += OpenCallingScreen;
         // Main 치료 시, 전화 도중 끊겼을 경우 설문 UI 대리함수 할당
         ConversationManager.actionEndedCallbySilence += OpenUnCallbySilenceSurvey;
@@ -82,16 +87,79 @@ public class PhoneManager : MonoBehaviour
         determinationField = EmptyScreenInputFields.transform.GetChild(1).GetComponent<InputField>();
     }
 
+    private void OnEnable()
+    {
+        if (GameManager.Instance.curSceneNumb == 1)
+        {
+            RingingCall();
+            OpenCallingScreen();
+        }
+    }
+
+    /// <summary>
+    /// 수신 전화로 벨소리 울릴 경우 호출됨
+    /// </summary>
+    private void RingingCall()
+    {
+        StartCoroutine(GameManager.Instance.DelayTime(1.5f, () =>
+        {
+            if (!DiagnosisSystem.isCalled && !ConversationManager.GlobalCallState)
+            {
+                StartCoroutine(WaitForUserCallResponse());
+            }
+        }));
+    }
+    private IEnumerator WaitForUserCallResponse()
+    {
+        yield return new WaitForSeconds(0.5f);
+
+        for (int i = 0; i < TakeCallChance; i++)
+        {
+            if (!DiagnosisSystem.isCalled)
+            {
+                SoundManager.instance.Play("bell");
+                yield return new WaitForSeconds(4);
+            }
+        }
+
+        UnTakeCallButton();
+    }
+
+    /// <summary>
+    /// 전화 받기 버튼
+    /// </summary>
+    public void TakeCallButton()
+    {
+        SoundManager.instance.Clear();
+        StopAllCoroutines();
+        actionConnectedComingCall?.Invoke();
+    }
+    /// <summary>
+    /// 전화 끊기 버튼
+    /// </summary>
+    public void UnTakeCallButton()
+    {
+        SoundManager.instance.Clear();
+        StopAllCoroutines();
+        actionDisconnectedComingCall?.Invoke();
+    }
 
     private void OpenHomeScreen()
     {
-        HomeScreen.SetActive(true);
+        HomeScreen.SetActive(true); // 오브젝트 활성화
+        if (HomeScreen.TryGetComponent<UnityEngine.UI.Image>(out var img))
+            StartCoroutine(GameManager.Instance.FadeIn(img, 0.5f, () => { })); // 페이드인
+
         SurveyScreen.SetActive(false);
         CallingScreen.SetActive(false);
         InCallScreen.SetActive(false);
         KeypadScreen.SetActive(false);
 
-        if (GameManager.Instance.curSceneNumb == 0) return;
+        if (GameManager.Instance.curSceneNumb == 0)
+        {
+            DiagnosisSystem.actionStartIncomingCall -= RingingCall;
+            return;
+        }
 
         if (isProcessedComplain)
         {
@@ -287,5 +355,6 @@ public class PhoneManager : MonoBehaviour
         CallSurvey.actionEndedSurvey -= OpenHomeScreen;
         DiagnosisSystem.actionUnCall -= OpenHomeScreen;
         ConversationManager.actionEndedCall -= OpenHomeScreen;
+        DiagnosisSystem.actionStartIncomingCall -= RingingCall;
     }
 }

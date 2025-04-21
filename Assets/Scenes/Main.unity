@@ -639,13 +639,13 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 92642015}
-        m_TargetAssemblyTypeName: InteractiveButton, Assembly-CSharp
-        m_MethodName: SetUnTakeCallButton
-        m_Mode: 2
+      - m_Target: {fileID: 1974102392}
+        m_TargetAssemblyTypeName: PhoneManager, Assembly-CSharp
+        m_MethodName: UnTakeCallButton
+        m_Mode: 1
         m_Arguments:
-          m_ObjectArgument: {fileID: 92642016}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.UI.Button, UnityEngine.UI
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
@@ -1889,13 +1889,13 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 293472533}
-        m_TargetAssemblyTypeName: InteractiveButton, Assembly-CSharp
-        m_MethodName: SetTakeCallButton
-        m_Mode: 2
+      - m_Target: {fileID: 1974102392}
+        m_TargetAssemblyTypeName: PhoneManager, Assembly-CSharp
+        m_MethodName: TakeCallButton
+        m_Mode: 1
         m_Arguments:
-          m_ObjectArgument: {fileID: 293472534}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.UI.Button, UnityEngine.UI
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
@@ -4759,13 +4759,13 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 1
         m_CallState: 2
-      - m_Target: {fileID: 877226798}
-        m_TargetAssemblyTypeName: InteractiveButton, Assembly-CSharp
-        m_MethodName: SetUnTakeCallButton
-        m_Mode: 2
+      - m_Target: {fileID: 1974102392}
+        m_TargetAssemblyTypeName: PhoneManager, Assembly-CSharp
+        m_MethodName: UnTakeCallButton
+        m_Mode: 1
         m_Arguments:
-          m_ObjectArgument: {fileID: 877226795}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.UI.Button, UnityEngine.UI
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
@@ -9590,13 +9590,13 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1846622173}
-        m_TargetAssemblyTypeName: InteractiveButton, Assembly-CSharp
-        m_MethodName: SetUnTakeCallButton
-        m_Mode: 2
+      - m_Target: {fileID: 1974102392}
+        m_TargetAssemblyTypeName: PhoneManager, Assembly-CSharp
+        m_MethodName: UnTakeCallButton
+        m_Mode: 1
         m_Arguments:
-          m_ObjectArgument: {fileID: 1846622174}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.UI.Button, UnityEngine.UI
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
