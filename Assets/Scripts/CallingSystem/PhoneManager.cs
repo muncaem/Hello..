@@ -32,9 +32,9 @@ public class PhoneManager : MonoBehaviour
     private string complainContent;
     public static bool isProcessedComplain { get; private set; } = false;
 
-    public static Action actionConnectedGoingCall;
-    public static Action actionDisconnectedComingCall;
-    public static Action actionConnectedComingCall;
+    //public static Action actionConnectedGoingCall;
+    //public static Action actionDisconnectedComingCall;
+    //public static Action actionConnectedComingCall;
 
     // 전화 받을 기회
     private int TakeCallChance = 3;
@@ -45,32 +45,32 @@ public class PhoneManager : MonoBehaviour
         if (GameManager.Instance.curSceneNumb == 0)
         {
             // 게임 시작 버튼 눌렀을 경우, 게임 진입 FadeIn 후 UI처리 대리함수 할당
-            InteractiveButton.actionEndedFadeIn += OpenCallingScreen;
+            EventHub.actionEndedFadeIn += OpenCallingScreen;
             // 초기 진단 시, 전화를 받지 않았을 경우 UI처리 대리함수 할당
-            DiagnosisSystem.actionFirstTestUnCall += FirstTestUnCallSurvey;
+            EventHub.actionFirstTestUnCall += FirstTestUnCallSurvey;
             // 초기 진단 시, 전화를 받은 이후 설문 UI 대리함수 할당
-            DiagnosisSystem.actionFirstCallEndedCall += FirstTestCallSurvey;
+            EventHub.actionFirstCallEndedCall += FirstTestCallSurvey;
         }
 
         // Main 치료 시, 송신 전화 올 경우, 사운드 및 UI처리 대리함수 할당
-        DiagnosisSystem.actionStartIncomingCall += RingingCall;
-        DiagnosisSystem.actionStartIncomingCall += OpenCallingScreen;
+        EventHub.actionStartIncomingCall += RingingCall;
+        EventHub.actionStartIncomingCall += OpenCallingScreen;
         // Main 치료 시, 전화 도중 끊겼을 경우 설문 UI 대리함수 할당
-        ConversationManager.actionEndedCallbySilence += OpenUnCallbySilenceSurvey;
+        EventHub.actionEndedRealCallbySilence += OpenUnCallbySilenceSurvey;
         // Main 치료 시, 하루 마무리 설문 UI 대리 함수 할당
         // -> 설문 하는 동안 시간 멈추기. 설문 완료하면 다음날 시작 UI 및 처리
-        GameManager.actionEndedDayTime += OpenEndedDaySurvey;
+        EventHub.actionEndedDayTime += OpenEndedDaySurvey;
 
         // Home Screen으로 콜백 할 델리게이트
         // 설문 이후 홈 이동
-        CallSurvey.actionEndedSurvey += OpenHomeScreen;
+        EventHub.actionSurveyEnded += OpenHomeScreen;
         // 전화 거절 이후 홈 이동
-        DiagnosisSystem.actionUnCall += OpenHomeScreen;
+        EventHub.actionEndedCallBySelect += OpenHomeScreen;
         // 전화 완료 이후 홈 이동
-        ConversationManager.actionEndedCall += OpenHomeScreen;
+        EventHub.actionEndedCallBySpeak += OpenHomeScreen;
 
         // 진행 중인 수신 전화 내용 업데이트 시마다 호출
-        OutGoingCallManager.actionUpdatedScenario += UpdatedCurrentOutgoingCallContent;
+        EventHub.actionUpdatedScenario += UpdatedCurrentOutgoingCallContent;
         //ConversationManager.actionEndedCall += UpdatedEndCall;
 
         // UI 할당
@@ -132,7 +132,7 @@ public class PhoneManager : MonoBehaviour
     {
         SoundManager.instance.Clear();
         StopAllCoroutines();
-        actionConnectedComingCall?.Invoke();
+        EventHub.actionConnectedComingCall?.Invoke();
     }
     /// <summary>
     /// 전화 끊기 버튼
@@ -141,7 +141,7 @@ public class PhoneManager : MonoBehaviour
     {
         SoundManager.instance.Clear();
         StopAllCoroutines();
-        actionDisconnectedComingCall?.Invoke();
+        EventHub.actionDisconnectedComingCall?.Invoke();
     }
 
     private void OpenHomeScreen()
@@ -157,7 +157,7 @@ public class PhoneManager : MonoBehaviour
 
         if (GameManager.Instance.curSceneNumb == 0)
         {
-            DiagnosisSystem.actionStartIncomingCall -= RingingCall;
+            EventHub.actionStartIncomingCall -= RingingCall;
             return;
         }
 
@@ -179,8 +179,8 @@ public class PhoneManager : MonoBehaviour
         if (CallingScreen.TryGetComponent<UnityEngine.UI.Image>(out var img))
             StartCoroutine(GameManager.Instance.FadeIn(img, 0.5f, () => { })); // 페이드인
 
-        if (InteractiveButton.actionEndedFadeIn != null)
-            InteractiveButton.actionEndedFadeIn -= OpenCallingScreen;
+        //if (EventHub.actionEndedFadeIn != null)
+        //    EventHub.actionEndedFadeIn -= OpenCallingScreen;
     }
 
     /// <summary>
@@ -248,7 +248,7 @@ public class PhoneManager : MonoBehaviour
 
             InCallScreen.gameObject.SetActive(true);
             KeypadScreen.gameObject.SetActive(false);
-            actionConnectedGoingCall?.Invoke();
+            EventHub.actionConnectedGoingCall?.Invoke();
             inputNumber = "";
             numberField.text = "";
         }
@@ -283,9 +283,9 @@ public class PhoneManager : MonoBehaviour
 
             SurveyScreen.transform.GetChild(0).gameObject.SetActive(true);
 
-            InteractiveButton.actionEndedFadeIn -= OpenCallingScreen;
-            DiagnosisSystem.actionFirstTestUnCall -= FirstTestUnCallSurvey;
-            DiagnosisSystem.actionFirstCallEndedCall -= FirstTestCallSurvey;
+            //EventHub.actionEndedFadeIn -= OpenCallingScreen;
+            //DiagnosisSystem.actionFirstTestUnCall -= FirstTestUnCallSurvey;
+            //DiagnosisSystem.actionFirstCallEndedCall -= FirstTestCallSurvey;
         }));
     }
 
@@ -335,26 +335,26 @@ public class PhoneManager : MonoBehaviour
 #if UNITY_EDITOR
         Debug.Log($"초기 진단 종료 - 유저 이름: {UserData.Instance.userName}, 각오 한마디: {UserData.Instance.userDetermination}");
 #endif
-        InteractiveButton.actionEndedFadeIn -= OpenCallingScreen;
-        DiagnosisSystem.actionFirstTestUnCall -= FirstTestUnCallSurvey;
-        DiagnosisSystem.actionFirstCallEndedCall -= FirstTestCallSurvey;
+        //EventHub.actionEndedFadeIn -= OpenCallingScreen;
+        //DiagnosisSystem.actionFirstTestUnCall -= FirstTestUnCallSurvey;
+        //DiagnosisSystem.actionFirstCallEndedCall -= FirstTestCallSurvey;
     }
 
 
     private void OnDestroy()
     {
-        if (GameManager.Instance.curSceneNumb == 0)
-        {
-            InteractiveButton.actionEndedFadeIn -= OpenCallingScreen;
-            DiagnosisSystem.actionFirstTestUnCall -= FirstTestUnCallSurvey;
-            DiagnosisSystem.actionFirstCallEndedCall -= FirstTestCallSurvey;
-        }
-        DiagnosisSystem.actionStartIncomingCall -= OpenCallingScreen;
-        ConversationManager.actionEndedCallbySilence -= OpenUnCallbySilenceSurvey;
-        GameManager.actionEndedDayTime -= OpenEndedDaySurvey;
-        CallSurvey.actionEndedSurvey -= OpenHomeScreen;
-        DiagnosisSystem.actionUnCall -= OpenHomeScreen;
-        ConversationManager.actionEndedCall -= OpenHomeScreen;
-        DiagnosisSystem.actionStartIncomingCall -= RingingCall;
+        EventHub.actionEndedFadeIn -= OpenCallingScreen;
+
+        EventHub.actionFirstTestUnCall -= FirstTestUnCallSurvey;
+        EventHub.actionFirstCallEndedCall -= FirstTestCallSurvey;
+        EventHub.actionStartIncomingCall -= OpenCallingScreen;
+        EventHub.actionEndedCallBySelect -= OpenHomeScreen;
+        EventHub.actionStartIncomingCall -= RingingCall;
+
+        EventHub.actionEndedRealCallbySilence -= OpenUnCallbySilenceSurvey;
+        EventHub.actionEndedCallBySpeak -= OpenHomeScreen;
+
+        EventHub.actionEndedDayTime -= OpenEndedDaySurvey;
+        EventHub.actionSurveyEnded -= OpenHomeScreen;
     }
 }

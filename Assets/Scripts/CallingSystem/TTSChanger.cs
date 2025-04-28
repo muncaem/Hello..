@@ -6,7 +6,7 @@ using UnityEngine.Networking;
 
 public class TTSChanger : MonoBehaviour
 {
-    public static Action actionTTSEnded; // TTS 종료 이벤트
+    //public static Action actionTTSEnded; // TTS 종료 이벤트
     private AudioSource audioSource; // 오디오 플레이 소스
 
     private string latestReplyCache; // 마지막 대답 캐싱
@@ -21,7 +21,7 @@ public class TTSChanger : MonoBehaviour
         if (text == latestReplyCache)
         {
             Debug.Log("[TTS] 같은 문장입니다. Google 요청 생략합니다.");
-            actionTTSEnded?.Invoke();
+            EventHub.actionTTSEnded?.Invoke();
             return;
         }
 
@@ -57,13 +57,13 @@ public class TTSChanger : MonoBehaviour
                 audioSource.Play();
 
                 yield return new WaitWhile(() => audioSource.isPlaying);
-                actionTTSEnded?.Invoke();
+                EventHub.actionTTSEnded?.Invoke();
             }
             else
             {
                 Debug.LogError("TTS 요청 실패: " + www.error);
                 // fallback: 녹음은 그대로 진행
-                actionTTSEnded?.Invoke(); //실패 UI 날리기용도
+                EventHub.actionTTSEnded?.Invoke(); //실패 UI 날리기용도
             }
         }
     }

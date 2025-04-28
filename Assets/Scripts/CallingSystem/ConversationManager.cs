@@ -19,20 +19,20 @@ public class ConversationManager : MonoBehaviour
     public static bool GlobalCallState { get; private set; }
 
 
-    public static Action actionEndedCall;
-    public static Action actionEndedCallbySilence;
+    //public static Action actionEndedCall;
+    //public static Action actionEndedCallbySilence;
 
     private void Awake()
     {
-        DiagnosisSystem.OnTakeCall += StartComingConversation; // 진단 시스템에서 전화를 받았을 경우 대리자 호출
+        EventHub.OnTakeCall += StartComingConversation; // 진단 시스템에서 전화를 받았을 경우 대리자 호출
 
-        MicRecorder.actionMicRecorded += OnUserSpeechRecognized; // 마이크 리코더에서 stt 변환 이후 대리자 호출
-        GptRequester.actionGptReceived += OnGPTReplyReceived; // 지피티 requester에서 gpt 응답 이후 대리자 호출
-        TTSChanger.actionTTSEnded += OnTTSEnded; // 지피티 응답 tts 처리 이후 작업 호출
+        EventHub.actionMicRecorded += OnUserSpeechRecognized; // 마이크 리코더에서 stt 변환 이후 대리자 호출
+        EventHub.actionGptReceived += OnGPTReplyReceived; // 지피티 requester에서 gpt 응답 이후 대리자 호출
+        EventHub.actionTTSEnded += OnTTSEnded; // 지피티 응답 tts 처리 이후 작업 호출
 
-        MicRecorder.actionEndedBySilence += OnEndCallbySilence;
+        EventHub.actionEndedBySilence += OnEndCallbySilence;
 
-        OutGoingCallManager.actionStartedGoingCall += StartGoingConversation;
+        EventHub.actionStartedGoingCall += StartGoingConversation;
     }
 
     /// <summary>
@@ -131,7 +131,7 @@ public class ConversationManager : MonoBehaviour
 
             if (isEndCallbySilence)
             {
-                actionEndedCallbySilence?.Invoke();
+                EventHub.actionEndedRealCallbySilence?.Invoke();
                 isEndCallbySilence = false;
 #if UNITY_EDITOR
                 Debug.Log("전화 종료 처리 - 침묵에 의해");
@@ -139,7 +139,7 @@ public class ConversationManager : MonoBehaviour
             }
             else
             {
-                actionEndedCall?.Invoke();
+                EventHub.actionEndedCallBySpeak?.Invoke();
 #if UNITY_EDITOR
                 Debug.Log("전화 종료 처리!");
 #endif
@@ -189,9 +189,9 @@ public class ConversationManager : MonoBehaviour
     // 종료 시, 델리게이트 해제
     private void OnDestroy()
     {
-        MicRecorder.actionMicRecorded -= OnUserSpeechRecognized;
-        GptRequester.actionGptReceived -= OnGPTReplyReceived;
-        TTSChanger.actionTTSEnded -= OnTTSEnded;
+        EventHub.actionMicRecorded -= OnUserSpeechRecognized;
+        EventHub.actionGptReceived -= OnGPTReplyReceived;
+        EventHub.actionTTSEnded -= OnTTSEnded;
     }
 }
 

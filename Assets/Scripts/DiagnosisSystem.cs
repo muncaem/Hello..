@@ -41,13 +41,13 @@ public class DiagnosisSystem : MonoBehaviour
     [Header("DiagnosisText")]
     [SerializeField] private string[] dialogs; // 다이얼로그
 
-    public static Action OnTakeCall; // 진단시스템으로부터 오는 전화를 받았을 경우 ConversationManager의 대화 시작
-    public static Action<string> actionFirstTestUnCall;
-    public static Action actionFirstCallEndedCall;
-    public static Action actionEndedSaveScore; // 초기 진단 점수 UserData에 저장 완료 후 대리자 호출
-    public static Action actionUnCall;
-    public static Action<int> actionUpdatedOutGoingValue; // 날마다 업데이트 되는 수신 통화량
-    public static Action actionStartIncomingCall;
+    //public static Action OnTakeCall; // 진단시스템으로부터 오는 전화를 받았을 경우 ConversationManager의 대화 시작
+    //public static Action<string> actionFirstTestUnCall;
+    //public static Action actionFirstCallEndedCall;
+    //public static Action actionEndedSaveScore; // 초기 진단 점수 UserData에 저장 완료 후 대리자 호출
+    //public static Action actionUnCall;
+    //public static Action<int> actionUpdatedOutGoingValue; // 날마다 업데이트 되는 수신 통화량
+    //public static Action actionStartIncomingCall;
 
     private Coroutine waitCallCoroutine;
 
@@ -61,29 +61,31 @@ public class DiagnosisSystem : MonoBehaviour
 
         if (GameManager.Instance.curSceneNumb == 0)
         {
-            TTSChanger.actionTTSEnded += OnTTSEnded;
-            MicRecorder.actionMicRecorded += OnRecordEnded;
+            EventHub.actionTTSEnded += OnTTSEnded;
+            EventHub.actionMicRecorded += OnRecordEnded;
         }
-        CallSurvey.actionUpdatedSurvey += UpdateScoreBySituation;
-        CallSurvey.actionEndedSurvey += ReturnFinalScore;
-        MicRecorder.actionUpdatedFactor += UpdateScoreBySituation;
-        GameManager.actionUpdatedDay += StartMainTherapy; // 하루가 지날때마다 송신/수신량 결정
-        GameManager.actionUpdatedCall += InComingCall; // n초마다 전화 오게 함
-        GameManager.actionChangedScene += OnChangedScene;
-        ConversationManager.actionEndedCall += RefreshCallState;
+        EventHub.actionUpdatedSurvey += UpdateScoreBySituation;
+        EventHub.actionSurveyEnded += ReturnFinalScore;
+        EventHub.actionUpdatedSpeakSituationFactor += UpdateScoreBySituation;
 
-        PhoneManager.actionConnectedComingCall += TakeCallDiagnosis;
-        PhoneManager.actionDisconnectedComingCall += UnTakeCallDiagnosis;
+        EventHub.actionUpdatedDay += StartMainTherapy; // 하루가 지날때마다 송신/수신량 결정
+        EventHub.actionReachedCallGap += InComingCall; // n초마다 전화 오게 함
+        GameManager.actionChangedScene += OnChangedScene;
+
+        EventHub.actionEndedCallBySpeak += RefreshCallState;
+
+        EventHub.actionConnectedComingCall += TakeCallDiagnosis;
+        EventHub.actionDisconnectedComingCall += UnTakeCallDiagnosis;
     }
 
     private void OnChangedScene()
     {
         // 델리게이트 해제
-        TTSChanger.actionTTSEnded -= OnTTSEnded;
-        MicRecorder.actionMicRecorded -= OnRecordEnded;
+        EventHub.actionTTSEnded -= OnTTSEnded;
+        EventHub.actionMicRecorded -= OnRecordEnded;
 
-        PhoneManager.actionConnectedComingCall -= TakeCallDiagnosis;
-        PhoneManager.actionDisconnectedComingCall -= UnTakeCallDiagnosis;
+        EventHub.actionConnectedComingCall -= TakeCallDiagnosis;
+        EventHub.actionDisconnectedComingCall -= UnTakeCallDiagnosis;
 
         StartCoroutine(RebindPhoneManagerActions());
     }
@@ -92,8 +94,8 @@ public class DiagnosisSystem : MonoBehaviour
         Debug.Log("RebindPhoneManagerActions In");
         yield return new WaitUntil(() => FindObjectOfType<PhoneManager>() != null);
         Debug.Log("RebindPhoneManagerActions end wait");
-        PhoneManager.actionConnectedComingCall += TakeCallDiagnosis;
-        PhoneManager.actionDisconnectedComingCall += UnTakeCallDiagnosis;
+        EventHub.actionConnectedComingCall += TakeCallDiagnosis;
+        EventHub.actionDisconnectedComingCall += UnTakeCallDiagnosis;
     }
 
     /// <summary>
@@ -105,35 +107,9 @@ public class DiagnosisSystem : MonoBehaviour
         //StartCoroutine(InitCheck());
         StartCoroutine(GameManager.Instance.DelayTime(1.5f, () =>
         {
-            actionStartIncomingCall?.Invoke();
+            EventHub.actionStartIncomingCall?.Invoke();
         }));
     }
-    //private IEnumerator InitCheck()
-    //{
-    //    yield return new WaitForSeconds(1.5f);
-
-    //    for (int i = 0; i < TakeCallChance; i++)
-    //    {
-    //        if (!isCalled)
-    //        {
-    //            SoundManager.instance.Play("bell");
-
-    //            yield return new WaitForSeconds(4);
-    //        }
-    //    }
-    //    yield return null;
-
-    //    // 3번 벨 울린 이후, 전화 받지 않은 것으로 간주
-    //    if (GameManager.Instance.curSceneNumb == 0) // 초기 진단일 경우
-    //        actionFirstTestUnCall?.Invoke(dialogs[0]);
-    //    // Main 치료 경우
-    //    else
-    //    {
-    //        actionUnCall?.Invoke();
-    //    }
-
-    //    UnTakeCall();
-    //}
 
 
     /// <summary>
@@ -173,7 +149,7 @@ public class DiagnosisSystem : MonoBehaviour
         Debug.Log($"outgoingcall: {outGoingCall}, incomingcall: {inCompingCall}");
 
 
-        actionUpdatedOutGoingValue?.Invoke(outGoingCall);
+        EventHub.actionUpdatedOutGoingValue?.Invoke(outGoingCall);
 
         //// 첫 시작 call
         //actionStartIncomingCall?.Invoke();
@@ -209,7 +185,7 @@ public class DiagnosisSystem : MonoBehaviour
         if (isCalled) return;
 
         // 하루 시작하자마자 n초 후 전화 오게 함
-        actionStartIncomingCall?.Invoke();
+        EventHub.actionStartIncomingCall?.Invoke();
         // 휴대폰에 전화오는 UI 및 사운드 띄우기
 
         //if (waitCallCoroutine != null)
@@ -254,7 +230,7 @@ public class DiagnosisSystem : MonoBehaviour
         if (GameManager.Instance.curSceneNumb == 0)
             CheckForFirstData(); // 초기 진단용 음성 대화
         else
-            OnTakeCall?.Invoke(); // 전화를 받았을 경우 실행되는 델리게이트 => StartComingConversation()
+            EventHub.OnTakeCall?.Invoke(); // 전화를 받았을 경우 실행되는 델리게이트 => StartComingConversation()
     }
 
     /// <summary>
@@ -277,14 +253,15 @@ public class DiagnosisSystem : MonoBehaviour
 #endif
         if (GameManager.Instance.curSceneNumb == 0)
         {
-            actionFirstTestUnCall?.Invoke(dialogs[0]); // 초기 진단 전화 거절로 텍스트로 진행
+            EventHub.actionFirstTestUnCall?.Invoke(dialogs[0]); // 초기 진단 전화 거절로 텍스트로 진행
         }
         else
         {
             outGoingCall++; // 거절 시, 수신 전화 추가
             // 평판 시스템 평판 감소 => UI 연결 시 델리게이트로 옮기기 고려
             UserData.Instance.userReputation--;
-            actionUnCall?.Invoke();
+            EventHub.actionEndedCallBySelect?.Invoke();
+            isCalled = false;
         }
     }
 
@@ -327,8 +304,8 @@ public class DiagnosisSystem : MonoBehaviour
 #if UNITY_EDITOR
             Debug.Log($"preFactor: {preFactor}, midFactor: {midFactor}, postFactor: {postFactor}");
 #endif
-            CallSurvey.actionEndedSurvey -= ReturnFinalScore;
-            actionEndedSaveScore?.Invoke();
+            EventHub.actionSurveyEnded -= ReturnFinalScore;
+            EventHub.actionFirstEndedSaveScore?.Invoke();
             Destroy(MicRecorder);
             //Destroy(TTSChanger);
             Destroy(transform.GetChild(0).gameObject);
@@ -352,7 +329,7 @@ public class DiagnosisSystem : MonoBehaviour
         else
         {
             // 진단용 대답 체크
-            actionFirstTestUnCall?.Invoke(dialogs[0]);
+            EventHub.actionFirstTestUnCall?.Invoke(dialogs[0]);
         }
     }
 
@@ -385,7 +362,7 @@ public class DiagnosisSystem : MonoBehaviour
 #endif
             preUserDataReply += 1;
 
-            actionFirstCallEndedCall?.Invoke();
+            EventHub.actionFirstCallEndedCall?.Invoke();
 
             isCalled = false; // 초기 진단 전화 종료
 

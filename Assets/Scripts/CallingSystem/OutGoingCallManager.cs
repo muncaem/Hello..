@@ -12,15 +12,16 @@ public class OutGoingCallManager : MonoBehaviour
     private int currFinishedGoingCall = 0;
     private int MaxGoingCall;
 
-    public static Action<ScenarioData, string> actionUpdatedScenario; // 현재 진행 중인 수신 시나리오로 업데이트
-    public static Action<int> actionEndedGoingCall;
-    public static Action<ScenarioData> actionStartedGoingCall;
+    //public static Action<ScenarioData, string> actionUpdatedScenario; // 현재 진행 중인 수신 시나리오로 업데이트
+    //public static Action<int> actionEndedGoingCall;
+    //public static Action<ScenarioData> actionStartedGoingCall;
 
     private void Awake()
     {
-        DiagnosisSystem.actionUpdatedOutGoingValue += CreateOutGoingValue; // 진단 결과 기반하여 수신 전화 시나리오 구성
-        PhoneManager.actionConnectedGoingCall += OutGoingCall; // 현재 전화 걸어야 하는 번호로 맞게 눌렀을 경우 호출됨
-        PhoneManager.actionConnectedGoingCall += EndedGoingComplaint; // 현재 송신 전화 임무는 완료
+        EventHub.actionUpdatedOutGoingValue += CreateOutGoingValue; // 진단 결과 기반하여 수신 전화 시나리오 구성
+
+        EventHub.actionConnectedGoingCall += OutGoingCall; // 현재 전화 걸어야 하는 번호로 맞게 눌렀을 경우 호출됨
+        EventHub.actionConnectedGoingCall += EndedGoingComplaint; // 현재 송신 전화 임무는 완료
     }
 
     /// <summary>
@@ -41,8 +42,8 @@ public class OutGoingCallManager : MonoBehaviour
 #endif
         }
 
-        actionEndedGoingCall?.Invoke(count);
-        actionUpdatedScenario?.Invoke(todayScenarios[0], setPhoneNumber[0]);
+        EventHub.actionUpdatedGoingCallValue?.Invoke(count);
+        EventHub.actionUpdatedScenario?.Invoke(todayScenarios[0], setPhoneNumber[0]);
     }
 
     /// <summary>
@@ -53,7 +54,7 @@ public class OutGoingCallManager : MonoBehaviour
         // 전화 중이면 return
         if (DiagnosisSystem.isCalled) return;
 
-        actionStartedGoingCall?.Invoke(todayScenarios[currFinishedGoingCall]);
+        EventHub.actionStartedGoingCall?.Invoke(todayScenarios[currFinishedGoingCall]);
     }
 
 
@@ -63,8 +64,8 @@ public class OutGoingCallManager : MonoBehaviour
     private void EndedGoingComplaint()
     {
         currFinishedGoingCall++; // 송신 전화 완료
-        actionEndedGoingCall?.Invoke(MaxGoingCall - currFinishedGoingCall); // 남은 송신 전화량 업데이트
+        EventHub.actionUpdatedGoingCallValue?.Invoke(MaxGoingCall - currFinishedGoingCall); // 남은 송신 전화량 업데이트
         if (currFinishedGoingCall >= MaxGoingCall) return;
-        actionUpdatedScenario?.Invoke(todayScenarios[currFinishedGoingCall], setPhoneNumber[currFinishedGoingCall]); // 다음 시나리오 업데이트
+        EventHub.actionUpdatedScenario?.Invoke(todayScenarios[currFinishedGoingCall], setPhoneNumber[currFinishedGoingCall]); // 다음 시나리오 업데이트
     }
 }

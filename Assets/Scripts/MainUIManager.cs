@@ -30,10 +30,10 @@ public class MainUIManager : MonoBehaviour
 
     private void Awake()
     {
-        GameManager.actionUpdatedDay += UpdateDayUI; // 새로운 day 시작될 때마다, 호출됨
+        EventHub.actionUpdatedDay += UpdateDayUI; // 새로운 day 시작될 때마다, 호출됨
         // 하루 치 수신 통화 수치 업데이트 시, 송신 전화 완료 시, 호출 됨
-        OutGoingCallManager.actionEndedGoingCall += UpdateOutGoingCallValue;
-        OutGoingCallManager.actionUpdatedScenario += CreateComplaintPapers; // 송신 시나리오 완성 시, 호출됨
+        EventHub.actionUpdatedGoingCallValue += UpdateOutGoingCallValue;
+        EventHub.actionUpdatedScenario += CreateComplaintPapers; // 송신 시나리오 완성 시, 호출됨
 
         complaintPaper_content = complaintPaper.transform.GetChild(0).GetComponent<Text>();
         complaintPaper_number = complaintPaper.transform.GetChild(1).GetComponent<Text>();

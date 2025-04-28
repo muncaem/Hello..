@@ -19,10 +19,10 @@ public class GameManager : MonoBehaviour
     private float dayCallGap;
     private float[] dayCallGapRange = { 25, 35 }; // 하루에 전화 오는 간격
 
-    public static Action actionUpdatedDay;
-    public static Action actionUpdatedCall;
-    public static Action actionEndedDayTime;
-    public static Action actionChangedScene;
+    //public static Action actionUpdatedDay;
+    //public static Action actionUpdatedCall;
+    //public static Action actionEndedDayTime;
+    public static Action actionChangedScene; // Scene Change Follow
 
     private void Awake()
     {
@@ -38,15 +38,15 @@ public class GameManager : MonoBehaviour
 
         curSceneNumb = SceneManager.GetActiveScene().buildIndex;
 
-        DiagnosisSystem.actionEndedSaveScore += MoveScene;
-        CallSurvey.actionEndedSurvey += UpdateDayTimer;
+        EventHub.actionFirstEndedSaveScore += MoveScene;
+        EventHub.actionSurveyEnded += UpdateDayTimer;
     }
 
     // 씬 이동
     private void MoveScene()
     {
         SceneManager.LoadScene(++curSceneNumb);
-        CallSurvey.actionEndedSurvey -= MoveScene;
+        EventHub.actionSurveyEnded -= MoveScene;
     }
 
     private void OnEnable()
@@ -73,7 +73,7 @@ public class GameManager : MonoBehaviour
     {
         yield return new WaitForSeconds(1f);
         day = 1;
-        actionUpdatedDay?.Invoke();
+        EventHub.actionUpdatedDay?.Invoke();
         SetDayCallGap();
         canPlayTime = true;
 
@@ -109,7 +109,7 @@ public class GameManager : MonoBehaviour
         // 전화 간격 도달 시
         if (gapTime >= dayCallGap)
         {
-            actionUpdatedCall?.Invoke();
+            EventHub.actionReachedCallGap?.Invoke();
             SetDayCallGap();
             gapTime = 0f;
         }
@@ -119,7 +119,7 @@ public class GameManager : MonoBehaviour
             /*|| ConversationManager. // 하루 치 통화 할당량 다 채웠을 경우*/)
         {
             // 주어진 하루 시간을 모두 사용하거나 할당량 채웠을 경우 마무리 설문 진행
-            actionEndedDayTime?.Invoke();
+            EventHub.actionEndedDayTime?.Invoke();
             canPlayTime = false;
         }
     }
@@ -129,7 +129,7 @@ public class GameManager : MonoBehaviour
     {
         if (canPlayTime == false && curSceneNumb == 1)
         {
-            actionUpdatedDay?.Invoke();
+            EventHub.actionUpdatedDay?.Invoke();
 
             time = 0;
             gapTime = 0;

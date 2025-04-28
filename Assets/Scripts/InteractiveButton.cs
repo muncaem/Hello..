@@ -14,9 +14,9 @@ public class InteractiveButton : MonoBehaviour
 
     private bool isClicked = false;
 
-    public static Action actionEndedFadeIn;
-    public static Action actionTakeCallButton;
-    public static Action actionUnTakeCallButton;
+    //public static Action actionEndedFadeIn;
+    //public static Action actionTakeCallButton;
+    //public static Action actionUnTakeCallButton;
 
     private void Awake()
     {
@@ -33,7 +33,7 @@ public class InteractiveButton : MonoBehaviour
         fade.gameObject.SetActive(true);
         StartCoroutine(GameManager.Instance.FadeIn(fade, 1.5f, () =>
         {
-            actionEndedFadeIn?.Invoke();
+            EventHub.actionEndedFadeIn?.Invoke();
         }));
 
     }
@@ -47,17 +47,17 @@ public class InteractiveButton : MonoBehaviour
 
     }
 
-    public void SetUnTakeCallButton(Button btn)
-    {
-        //btn.onClick.RemoveAllListeners(); //// 코드에서 여러 번 AddListener() 호출될 가능성 있을 경우 사용
-        btn.onClick.AddListener(() =>
-        {
-            actionUnTakeCallButton?.Invoke();
-            //if (DiagnosisSystem.Instance != null)
-            //    DiagnosisSystem.Instance.UnTakeCall();
-        });
-        //StartCoroutine(SetupUnTakeButtonsLater(btn));
-    }
+    //public void SetUnTakeCallButton(Button btn)
+    //{
+    //    //btn.onClick.RemoveAllListeners(); //// 코드에서 여러 번 AddListener() 호출될 가능성 있을 경우 사용
+    //    btn.onClick.AddListener(() =>
+    //    {
+    //        actionUnTakeCallButton?.Invoke();
+    //        //if (DiagnosisSystem.Instance != null)
+    //        //    DiagnosisSystem.Instance.UnTakeCall();
+    //    });
+    //    //StartCoroutine(SetupUnTakeButtonsLater(btn));
+    //}
     //private IEnumerator SetupUnTakeButtonsLater(Button btn)
     //{
     //    yield return new WaitUntil(() => DiagnosisSystem.Instance != null);
@@ -68,17 +68,17 @@ public class InteractiveButton : MonoBehaviour
     //    });
     //}
 
-    public void SetTakeCallButton(Button btn)
-    {
-        //btn.onClick.RemoveAllListeners(); //// 코드에서 여러 번 AddListener() 호출될 가능성 있을 경우 사용
-        btn.onClick.AddListener(() =>
-        {
-            actionTakeCallButton?.Invoke();
-            //if (DiagnosisSystem.Instance != null)
-            //    DiagnosisSystem.Instance.TakeCall();
-        });
-        //StartCoroutine(SetupTakeButtonsLater(btn));
-    }
+    //public void SetTakeCallButton(Button btn)
+    //{
+    //    //btn.onClick.RemoveAllListeners(); //// 코드에서 여러 번 AddListener() 호출될 가능성 있을 경우 사용
+    //    btn.onClick.AddListener(() =>
+    //    {
+    //        actionTakeCallButton?.Invoke();
+    //        //if (DiagnosisSystem.Instance != null)
+    //        //    DiagnosisSystem.Instance.TakeCall();
+    //    });
+    //    //StartCoroutine(SetupTakeButtonsLater(btn));
+    //}
     //private IEnumerator SetupTakeButtonsLater(Button btn)
     //{
     //    yield return new WaitUntil(() => DiagnosisSystem.Instance != null);

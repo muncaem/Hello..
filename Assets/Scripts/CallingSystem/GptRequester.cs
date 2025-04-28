@@ -9,7 +9,7 @@ using static MicRecorder;
 // Flask의 GPT 서버에 프롬프트를 보내고 응답을 받아오는 클래스
 public class GptRequester : MonoBehaviour
 {
-    public static Action<string, bool> actionGptReceived; // gpt 응답 이후 대리자 호출
+    //public static Action<string, bool> actionGptReceived; // gpt 응답 이후 대리자 호출
     private string userId = "user_001";  // 유저 고유 ID (추후 로그인 시스템과 연동 예정)
 
     /// Flask에서 실행 중인 서버의 주소
@@ -82,7 +82,7 @@ public class GptRequester : MonoBehaviour
             string comment = res.reply; // 변환한 응답
 
             // 종료 키워드 체크 및 매니저에게 델리게이트
-            actionGptReceived?.Invoke(comment, AITalkEndCheck(comment));
+            EventHub.actionGptReceived?.Invoke(comment, AITalkEndCheck(comment));
 
             Debug.Log("GPT 응답 받음: " + comment);
         }
