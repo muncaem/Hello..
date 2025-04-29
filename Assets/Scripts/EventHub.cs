@@ -57,7 +57,6 @@ public class EventHub : MonoBehaviour
     /// </summary>
     public static Action<string> actionFirstTestUnCall; // 초기 진단 전화 안받았을 경우
     public static Action actionFirstCallEndedCall; // 초기 진단 전화 정상적으로 Ended경우
-
     public static Action actionFirstEndedSaveScore; // 초기 진단 점수 UserData에 저장 완료 후 대리자 호출
 
     /// <summary>

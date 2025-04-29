@@ -104,20 +104,25 @@ public class GameManager : MonoBehaviour
 
         // 전화 중이 아니면 gapTime 쌓기
         if (!ConversationManager.GlobalCallState)
+        {
             gapTime += Time.deltaTime;
+            Debug.Log($"<color=red>gapTime : {gapTime}</color>");
+        }
 
         // 전화 간격 도달 시
         if (gapTime >= dayCallGap)
         {
+            Debug.Log("gapTime >= dayCallGap");
             EventHub.actionReachedCallGap?.Invoke();
             SetDayCallGap();
             gapTime = 0f;
         }
 
         // 하루 종료 조건
-        if ((time >= secondsPerDay && ConversationManager.GlobalCallState == false) 
-            /*|| ConversationManager. // 하루 치 통화 할당량 다 채웠을 경우*/)
+        if (time >= secondsPerDay && ConversationManager.GlobalCallState == false) 
+            /*|| ConversationManager. // 하루 치 통화 할당량 다 채웠을 경우*/
         {
+            Debug.Log("time >= secondsPerDay && ConversationManager.GlobalCallState == false");
             // 주어진 하루 시간을 모두 사용하거나 할당량 채웠을 경우 마무리 설문 진행
             EventHub.actionEndedDayTime?.Invoke();
             canPlayTime = false;

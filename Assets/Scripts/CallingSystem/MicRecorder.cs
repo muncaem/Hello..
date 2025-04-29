@@ -13,7 +13,7 @@ public class MicRecorder : MonoBehaviour
     private const float silenceThreshold = 0.01f; // 감지 기준 볼륨
     private const float maxSilenceTime = 2f;      // 침묵 지속 시간
     private int silenceCount = 0; // 침묵 횧수
-    private int maxSilenceCount = 3; // 최대 침묵 가능 횟수
+    private int maxSilenceCount = 2; // 최대 침묵 가능 횟수
 
     private string micDevice;
     private int sampleWindow = 128;

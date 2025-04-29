@@ -220,7 +220,7 @@ public class PhoneManager : MonoBehaviour
             if (SurveyScreen.TryGetComponent<UnityEngine.UI.Image>(out var img))
                 StartCoroutine(GameManager.Instance.FadeIn(img, 0.5f, () => { })); // 페이드인
 
-            SurveyScreen.transform.GetChild(3).gameObject.SetActive(true);
+            SurveyScreen.transform.GetChild(1).gameObject.SetActive(true);
         }));
     }
 

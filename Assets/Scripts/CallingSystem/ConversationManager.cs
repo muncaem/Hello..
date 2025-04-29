@@ -127,8 +127,6 @@ public class ConversationManager : MonoBehaviour
     {
         if (isConversationEnded)
         {
-            GlobalCallState = false; // AI의 마지막 말로 끝까지 끝났을 때 체크
-
             if (isEndCallbySilence)
             {
                 EventHub.actionEndedRealCallbySilence?.Invoke();
@@ -145,6 +143,8 @@ public class ConversationManager : MonoBehaviour
 #endif
             }
 
+            GlobalCallState = false; // AI의 마지막 말로 끝까지 끝났을 때 체크
+            isConversationEnded = false;
             return;
         }
 
