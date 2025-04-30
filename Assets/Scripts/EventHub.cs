@@ -51,6 +51,7 @@ public class EventHub : MonoBehaviour
     /// </summary>
     public static Action actionEndedCallBySpeak; // 말로 통화 종료되었을 때 호출 -> ConversationManger에서 TTSEnded 이후
     public static Action actionEndedCallBySelect; // 버튼으로 종료되었을 때 호출 -> DiagnosisSystem에서 끊기 버튼 눌렀을 때
+    public static Action<string> actionUpdateComplaintMsg; // 정상적으로 통화 종료 이후 민원 메시지 처리 update
 
     /// <summary>
     /// 초기 진단용 Conversation 관련

@@ -186,30 +186,7 @@ public class DiagnosisSystem : MonoBehaviour
 
         // 하루 시작하자마자 n초 후 전화 오게 함
         EventHub.actionStartIncomingCall?.Invoke();
-        // 휴대폰에 전화오는 UI 및 사운드 띄우기
-
-        //if (waitCallCoroutine != null)
-        //{
-        //    StopCoroutine(waitCallCoroutine);
-        //    waitCallCoroutine = null;
-        //}
-        //waitCallCoroutine = StartCoroutine(WaitForUserCallResponse());
     }
-    //private IEnumerator WaitForUserCallResponse() /// incomming call 받을 때까지 대기
-    //{
-    //    yield return new WaitForSeconds(0.5f);
-
-    //    for (int i = 0; i < TakeCallChance; i++)
-    //    {
-    //        if (!isCalled)
-    //        {
-    //            SoundManager.instance.Play("bell");
-    //            yield return new WaitForSeconds(4);
-    //        }
-    //    }
-    //    //actionUnCall?.Invoke();
-    //    UnTakeCall();
-    //}
 
 
     /// <summary>
@@ -217,14 +194,6 @@ public class DiagnosisSystem : MonoBehaviour
     /// </summary>
     public void TakeCallDiagnosis()
     {
-        //SoundManager.instance.Clear();
-        //StopAllCoroutines();
-        //if (waitCallCoroutine != null)
-        //{
-        //    StopCoroutine(waitCallCoroutine);
-        //    waitCallCoroutine = null;
-        //}
-
         isCalled = true;
 
         if (GameManager.Instance.curSceneNumb == 0)
@@ -238,14 +207,6 @@ public class DiagnosisSystem : MonoBehaviour
     /// </summary>
     public void UnTakeCallDiagnosis()
     {
-        //SoundManager.instance.Clear();
-        //StopAllCoroutines();
-        //if (waitCallCoroutine != null)
-        //{
-        //    StopCoroutine(waitCallCoroutine);
-        //    waitCallCoroutine = null;
-        //}
-
         preFactor++; //사전 증세 요인 + 1
 
 #if UNITY_EDITOR

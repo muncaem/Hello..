@@ -28,8 +28,9 @@ public class PhoneManager : MonoBehaviour
 
     [Header("Regarded_Complaint")]
     [SerializeField] private GameObject complaintMsgIcon;
-    [SerializeField] private UnityEngine.UI.Text complaintScreenText;
-    private string complainContent;
+    [SerializeField] private UnityEngine.UI.Text[] complaintScreenText;
+    private int activeComplaintText = 0;
+    //private string complainContent;
     public static bool isProcessedComplain { get; private set; } = false;
 
     //public static Action actionConnectedGoingCall;
@@ -68,10 +69,11 @@ public class PhoneManager : MonoBehaviour
         EventHub.actionEndedCallBySelect += OpenHomeScreen;
         // 전화 완료 이후 홈 이동
         EventHub.actionEndedCallBySpeak += OpenHomeScreen;
+        // 전화 종료 후 컴플레인 텍스트 활성화 (정상적으로 종료 경우만)
+        EventHub.actionUpdateComplaintMsg += ActiveComplaintMessage;
 
         // 진행 중인 수신 전화 내용 업데이트 시마다 호출
         EventHub.actionUpdatedScenario += UpdatedCurrentOutgoingCallContent;
-        //ConversationManager.actionEndedCall += UpdatedEndCall;
 
         // UI 할당
         HomeScreen = transform.GetChild(0).gameObject;
@@ -126,15 +128,6 @@ public class PhoneManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 전화 받기 버튼
-    /// </summary>
-    public void TakeCallButton()
-    {
-        SoundManager.instance.Clear();
-        StopAllCoroutines();
-        EventHub.actionConnectedComingCall?.Invoke();
-    }
-    /// <summary>
     /// 전화 끊기 버튼
     /// </summary>
     public void UnTakeCallButton()
@@ -144,6 +137,9 @@ public class PhoneManager : MonoBehaviour
         EventHub.actionDisconnectedComingCall?.Invoke();
     }
 
+    /// <summary>
+    /// 전화 끊은 이후 HomeScreen으로 전환
+    /// </summary>
     private void OpenHomeScreen()
     {
         HomeScreen.SetActive(true); // 오브젝트 활성화
@@ -157,18 +153,27 @@ public class PhoneManager : MonoBehaviour
 
         if (GameManager.Instance.curSceneNumb == 0)
         {
+            Debug.Log("<color=yellow>여기 아예 안들어갈 것 같은데 OpenHomeScreen 2번째 if문 </color>");
             EventHub.actionStartIncomingCall -= RingingCall;
             return;
         }
 
-        if (isProcessedComplain)
-        {
-            // 민원처리 완료 시 비활성화 필요
-            complaintMsgIcon.SetActive(true);
-            complaintScreenText.text = complainContent;
-        }
+        //if (isProcessedComplain)
+        //{
+        //    // 민원처리 완료 시 비활성화 필요
+        //    complaintMsgIcon.SetActive(true);
+        //    complaintScreenText[activeComplaintText++].text = complainContent;
+        //}
     }
 
+
+    private void ActiveComplaintMessage(string content)
+    {
+        // 민원처리 완료 시 비활성화 필요
+        complaintMsgIcon.SetActive(true);
+        complaintScreenText[activeComplaintText].gameObject.SetActive(true);
+        complaintScreenText[activeComplaintText++].text = content;
+    }
 
     /// <summary>
     /// 전화 오는 화면 UI 활성화
@@ -191,7 +196,7 @@ public class PhoneManager : MonoBehaviour
     private void UpdatedCurrentOutgoingCallContent(ScenarioData data, string number)
     {
         outgoingNumber = number.Replace("-", "");
-        complainContent = MainUIManager.complaintPaper_content.text;
+        //complainContent = MainUIManager.complaintPaper_content.text;
     }
 
     /// <summary>

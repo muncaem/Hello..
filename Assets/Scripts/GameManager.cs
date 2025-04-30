@@ -106,7 +106,6 @@ public class GameManager : MonoBehaviour
         if (!ConversationManager.GlobalCallState)
         {
             gapTime += Time.deltaTime;
-            Debug.Log($"<color=red>gapTime : {gapTime}</color>");
         }
 
         // 전화 간격 도달 시

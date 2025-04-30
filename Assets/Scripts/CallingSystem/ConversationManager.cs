@@ -16,7 +16,9 @@ public class ConversationManager : MonoBehaviour
     private string emotionTag; ///ai 주민 감정 태그
     public static string GlobalEmotionTag { get; private set; } // 감정 태그 static 변수
     private string currentScenario; /// 현 ai 주민 배경 시나리오
+    private string currentOnlyScenarioContext;
     public static bool GlobalCallState { get; private set; }
+
 
 
     //public static Action actionEndedCall;
@@ -50,6 +52,7 @@ public class ConversationManager : MonoBehaviour
 
         // 1. GPT가 먼저 전화 시작 2. 유저 말 감지 루프는 GPT 응답 끝난 후에 시작되도록 GptRequester에서 처리
         gptRequester.RequestGPT(currentScenario); // GPT가 먼저 발화
+        currentOnlyScenarioContext = scenarioData.situation;
 
         isConversationEnded = false;
         GlobalCallState = true;
@@ -66,6 +69,9 @@ public class ConversationManager : MonoBehaviour
         currentScenario = $"너는 {data.role}. {data.situation}. {data.emotion} 상태야. " +
             $"항상 대답 맨 앞에 {data.emotionTag}태그를 붙여서 감정을 표시해.";
         gptRequester.RequestGPT(currentScenario);
+        currentOnlyScenarioContext = data.situation;
+
+        isConversationEnded = false;
         GlobalCallState = true;
     }
 
@@ -85,25 +91,6 @@ public class ConversationManager : MonoBehaviour
             Debug.Log("전화 종료 처리중");
 
             isConversationEnded = true; // 대화 종료 포인트 경우
-//            GlobalCallState = false;
-
-//            if (isEndCallbySilence)
-//            {
-//                actionEndedCallbySilence?.Invoke();
-//                isEndCallbySilence = false;
-//#if UNITY_EDITOR
-//                Debug.Log("전화 종료 처리 - 침묵에 의해");
-//#endif
-//            }
-//            else
-//            {
-//                actionEndedCall?.Invoke();
-//#if UNITY_EDITOR
-//                Debug.Log("전화 종료 처리!");
-//#endif
-//            }
-
-//            return;
         }
     }
     /// <summary>
@@ -138,13 +125,14 @@ public class ConversationManager : MonoBehaviour
             else
             {
                 EventHub.actionEndedCallBySpeak?.Invoke();
+                EventHub.actionUpdateComplaintMsg?.Invoke(currentOnlyScenarioContext);
 #if UNITY_EDITOR
                 Debug.Log("전화 종료 처리!");
 #endif
             }
 
             GlobalCallState = false; // AI의 마지막 말로 끝까지 끝났을 때 체크
-            isConversationEnded = false;
+            isConversationEnded = true;
             return;
         }
 
