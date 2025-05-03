@@ -30,4 +30,16 @@ public class UserData : MonoBehaviour
     public int lastPreFactor { get; set; }
     public int lastMidFactor { get; set; }
     public int lastPostFactor { get; set; }
+
+
+    /// <summary>
+    /// 민원 처리 완료되었을 경우, 평판 관리
+    /// 하나 처리 완료 시, 16씩 +
+    /// 하루 넘어갈 때 해결하지 못한 민원 갯수 세서 16 x n개만큼 -
+    /// UnTakeCall 클릭 시 혹은 전화하다가 끊었을 때, 5씩 -
+    /// </summary>
+    private void ManageUserReputation()
+    {
+
+    }
 }

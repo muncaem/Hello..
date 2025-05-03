@@ -33,10 +33,6 @@ public class PhoneManager : MonoBehaviour
     //private string complainContent;
     public static bool isProcessedComplain { get; private set; } = false;
 
-    //public static Action actionConnectedGoingCall;
-    //public static Action actionDisconnectedComingCall;
-    //public static Action actionConnectedComingCall;
-
     // 전화 받을 기회
     private int TakeCallChance = 3;
 
@@ -74,6 +70,12 @@ public class PhoneManager : MonoBehaviour
 
         // 진행 중인 수신 전화 내용 업데이트 시마다 호출
         EventHub.actionUpdatedScenario += UpdatedCurrentOutgoingCallContent;
+
+        // 민원 처리 완료 시 호출되어 complaint text 제어
+        EventHub.actionSolvedComplaint += DeactiveComplaintMessage;
+
+        // 날짜 바뀔 때 UI 초기화
+        EventHub.actionEndedDayTime += RefreshComplaintUI;
 
         // UI 할당
         HomeScreen = transform.GetChild(0).gameObject;
@@ -174,6 +176,29 @@ public class PhoneManager : MonoBehaviour
         complaintScreenText[activeComplaintText].gameObject.SetActive(true);
         complaintScreenText[activeComplaintText++].text = content;
     }
+    private void DeactiveComplaintMessage(int index)
+    {
+        complaintScreenText[index].gameObject.SetActive(false);
+
+        // 모두 비활성화 경우, complaintMsg 아이콘 비활성화
+        for (int i = 0; i < complaintScreenText.Length; i++)
+        {
+            // 활성화 오브젝트가 하나라도 있을 경우 return
+            if (complaintScreenText[i].gameObject.activeSelf)
+                return;
+        }
+        complaintMsgIcon.SetActive(false);
+    }
+    private void RefreshComplaintUI()
+    {
+        for (int i = 0; i < complaintScreenText.Length; i++)
+        {
+            complaintScreenText[i].gameObject.SetActive(false);
+            complaintScreenText[i].text = "";
+        }
+        complaintMsgIcon.SetActive(false);
+    }
+
 
     /// <summary>
     /// 전화 오는 화면 UI 활성화

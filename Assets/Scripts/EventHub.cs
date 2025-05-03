@@ -53,6 +53,7 @@ public class EventHub : MonoBehaviour
     public static Action actionEndedCallBySelect; // 버튼으로 종료되었을 때 호출 -> DiagnosisSystem에서 끊기 버튼 눌렀을 때
     public static Action<string> actionUpdateComplaintMsg; // 정상적으로 통화 종료 이후 민원 메시지 처리 update
 
+
     /// <summary>
     /// 초기 진단용 Conversation 관련
     /// </summary>
@@ -78,4 +79,8 @@ public class EventHub : MonoBehaviour
     public static Action actionEndedDayTime; // 하루 치 시간 모두 소모함과 동시에 전화가 끝났을 경우 호출
 
 
+    /// <summary>
+    /// 민원 해결 관련
+    /// </summary>
+    public static Action<int> actionSolvedComplaint;
 }
