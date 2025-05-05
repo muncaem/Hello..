@@ -9,8 +9,8 @@ public class MainUIManager : MonoBehaviour
     // 오늘의 송신해야 할 민원 횟수 -> 줄어들 때마다 update필요
     [SerializeField] private Text outgoingCallValue;
     // 맵에 동적으로 띄울 민원 아이콘 -> 줄어들 때마다 update 필요 (오브젝트 풀링 쓸지 고민)
-    [SerializeField] private GameObject complaintObjIcon;
-    private int activeIconObjVal;
+    //[SerializeField] private GameObject complaintObjIcon;
+    //private int activeIconObjVal;
     // 송신해야할 민원 아이콘 누르면 띄울 민원 내용 및 유저 전화번호 담긴 오브젝트 -> 하나 클리어 할 때마다 내용 바뀌게
     [SerializeField] private GameObject complaintPaper;
     public static Text complaintPaper_content { get; private set; }
@@ -21,7 +21,12 @@ public class MainUIManager : MonoBehaviour
     [Header("Regarded_State_UI")]
     [SerializeField] private Text userName;
     [SerializeField] private Text userDetermination;
-    //[SerializeField] private GameObject userReputation;
+    [SerializeField] private Scrollbar userReputation;
+
+    [Header("Regarded_PhobiaState_UI")]
+    [SerializeField] private Scrollbar avoidCallBar;
+    [SerializeField] private Scrollbar hesitateBar;
+    [SerializeField] private Scrollbar afterRegretBar;
 
     [Header("")]
     [SerializeField] private Text dayText;
@@ -34,6 +39,8 @@ public class MainUIManager : MonoBehaviour
         // 하루 치 수신 통화 수치 업데이트 시, 송신 전화 완료 시, 호출 됨
         EventHub.actionUpdatedGoingCallValue += UpdateOutGoingCallValue;
         EventHub.actionUpdatedScenario += CreateComplaintPapers; // 송신 시나리오 완성 시, 호출됨
+        EventHub.actionUpdateReputation += ManageReputationBar; // 민원 처리 시, up/down
+        EventHub.actionUpdatePhobiaBar += ManageCallPhobiaBar;
 
         complaintPaper_content = complaintPaper.transform.GetChild(0).GetComponent<Text>();
         complaintPaper_number = complaintPaper.transform.GetChild(1).GetComponent<Text>();
@@ -100,12 +107,23 @@ public class MainUIManager : MonoBehaviour
         complaintPaper.SetActive(isOpenPaper);
     }
 
-    /// <summary>
-    /// 부서 전화번호부
-    /// </summary>
-    /// <param name="numb">전화번호</param>
-    private void CreateNumberBookText(string numb)
-    {
 
+    /// <summary>
+    /// 민원 처리 완료되었을 경우, 평판 관리
+    /// ( 하나 처리 완료 시, 16씩 +
+    /// 하루 넘어갈 때 해결하지 못한 민원 갯수 세서 16 x n개만큼 - (남은 outgoingcall 개수, complaint 문자 개수_
+    /// UnTakeCall 클릭 시 혹은 전화하다가 무음으로 끊었을 때, 5씩 - )
+    /// </summary>
+    private void ManageReputationBar()
+    {
+        userReputation.size = 100 / UserData.Instance.userReputation;
+    }
+
+
+    private void ManageCallPhobiaBar(int avoid, int hesitate, int after)
+    {
+        avoidCallBar.size = 100 / avoid;
+        hesitateBar.size = 100 / hesitate;
+        afterRegretBar.size = 100 / after;
     }
 }

@@ -117,6 +117,8 @@ public class ConversationManager : MonoBehaviour
             if (isEndCallbySilence)
             {
                 EventHub.actionEndedRealCallbySilence?.Invoke();
+                UserData.Instance.userReputation -= 5;
+                EventHub.actionUpdateReputation?.Invoke();
                 isEndCallbySilence = false;
 #if UNITY_EDITOR
                 Debug.Log("전화 종료 처리 - 침묵에 의해");

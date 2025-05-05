@@ -69,6 +69,7 @@ public class EventHub : MonoBehaviour
     public static Action<string> actionUpdatedSpeakSituationFactor; // 발화 상황 중 콜포비아 요인 업데이트 대리자 호출
     public static Action<string> actionUpdatedSurvey; // Survey 결과 업데이트 시
     public static Action actionSurveyEnded; // Survey 끝났을 경우 호출
+    public static Action<int, int, int> actionUpdatePhobiaBar; // Survey 결과에 따라 Phobia Bar 업데이트
 
 
     /// <summary>
@@ -82,5 +83,6 @@ public class EventHub : MonoBehaviour
     /// <summary>
     /// 민원 해결 관련
     /// </summary>
-    public static Action<int> actionSolvedComplaint;
+    public static Action<int> actionSolvedComplaint; // 민원 처리 완료 시 호출
+    public static Action actionUpdateReputation; // 평판 update 시 호출
 }

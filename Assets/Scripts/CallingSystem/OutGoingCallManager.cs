@@ -22,12 +22,13 @@ public class OutGoingCallManager : MonoBehaviour
 
         EventHub.actionConnectedGoingCall += OutGoingCall; // 현재 전화 걸어야 하는 번호로 맞게 눌렀을 경우 호출됨
         EventHub.actionConnectedGoingCall += EndedGoingComplaint; // 현재 송신 전화 임무는 완료
+        EventHub.actionEndedDayTime += EndDayAndSendleftCallValue; // 날짜 바뀌기 직전 남은 송신량 평판에 반영
     }
 
     /// <summary>
-    /// 날마다 업데이트 되는 수신 통화량
+    /// 날마다 업데이트 되는 out going call 통화량
     /// </summary>
-    /// <param name="count">수신 통화량</param>
+    /// <param name="count">out going call 통화량</param>
     public void CreateOutGoingValue(int count)
     {
         MaxGoingCall = count;
@@ -67,5 +68,15 @@ public class OutGoingCallManager : MonoBehaviour
         EventHub.actionUpdatedGoingCallValue?.Invoke(MaxGoingCall - currFinishedGoingCall); // 남은 송신 전화량 업데이트
         if (currFinishedGoingCall >= MaxGoingCall) return;
         EventHub.actionUpdatedScenario?.Invoke(todayScenarios[currFinishedGoingCall], setPhoneNumber[currFinishedGoingCall]); // 다음 시나리오 업데이트
+    }
+
+
+    /// <summary>
+    /// 하루가 끝날 때 남은 out going call value 에 따른 평판 업데이트
+    /// </summary>
+    private void EndDayAndSendleftCallValue()
+    {
+        UserData.Instance.userReputation -= 16 * (MaxGoingCall - currFinishedGoingCall);
+        EventHub.actionUpdateReputation?.Invoke();
     }
 }

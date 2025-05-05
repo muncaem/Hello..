@@ -220,7 +220,8 @@ public class DiagnosisSystem : MonoBehaviour
         {
             outGoingCall++; // 거절 시, 수신 전화 추가
             // 평판 시스템 평판 감소 => UI 연결 시 델리게이트로 옮기기 고려
-            UserData.Instance.userReputation--;
+            UserData.Instance.userReputation -= 5;
+            EventHub.actionUpdateReputation?.Invoke();
             EventHub.actionEndedCallBySelect?.Invoke();
             isCalled = false;
         }
@@ -253,6 +254,8 @@ public class DiagnosisSystem : MonoBehaviour
 #endif
                 break;
         }
+
+        EventHub.actionUpdatePhobiaBar?.Invoke(preFactor, midFactor, postFactor);
     }
     private void ReturnFinalScore()
     {

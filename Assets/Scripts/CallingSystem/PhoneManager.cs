@@ -31,7 +31,7 @@ public class PhoneManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Text[] complaintScreenText;
     private int activeComplaintText = 0;
     //private string complainContent;
-    public static bool isProcessedComplain { get; private set; } = false;
+    //public static bool isProcessedComplain { get; private set; } = false;
 
     // 전화 받을 기회
     private int TakeCallChance = 3;
@@ -159,13 +159,6 @@ public class PhoneManager : MonoBehaviour
             EventHub.actionStartIncomingCall -= RingingCall;
             return;
         }
-
-        //if (isProcessedComplain)
-        //{
-        //    // 민원처리 완료 시 비활성화 필요
-        //    complaintMsgIcon.SetActive(true);
-        //    complaintScreenText[activeComplaintText++].text = complainContent;
-        //}
     }
 
 
@@ -191,12 +184,21 @@ public class PhoneManager : MonoBehaviour
     }
     private void RefreshComplaintUI()
     {
+        int notSolveCallVal = 0;
         for (int i = 0; i < complaintScreenText.Length; i++)
         {
-            complaintScreenText[i].gameObject.SetActive(false);
+            if (complaintScreenText[i].gameObject.activeSelf)
+            {
+                notSolveCallVal++;
+                complaintScreenText[i].gameObject.SetActive(false);
+            }
             complaintScreenText[i].text = "";
         }
         complaintMsgIcon.SetActive(false);
+
+        // 해결하지 않은 outgoing call 개수만큼 평판 차감
+        UserData.Instance.userReputation -= 16 * notSolveCallVal;
+        EventHub.actionUpdateReputation?.Invoke();
     }
 
 
@@ -274,7 +276,7 @@ public class PhoneManager : MonoBehaviour
         // 전화 연결 - 민원의 내용과 연결해서 델리게이트 호출
         if (outgoingNumber == inputNumber)
         {
-            isProcessedComplain = true;
+            //isProcessedComplain = true;
 
             InCallScreen.gameObject.SetActive(true);
             KeypadScreen.gameObject.SetActive(false);
@@ -283,7 +285,10 @@ public class PhoneManager : MonoBehaviour
             numberField.text = "";
         }
         // 전화 번호 다를 경우
-        else { }
+        else 
+        { 
+        
+        }
     }
 
     /// <summary>

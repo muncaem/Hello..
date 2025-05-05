@@ -86,6 +86,8 @@ public class SolveComplaint : MonoBehaviour
             if (complaintNumberPair[i].Item1 == inputNumber)
             {
                 EventHub.actionSolvedComplaint?.Invoke(i);
+                UserData.Instance.userReputation += 16;
+                EventHub.actionUpdateReputation?.Invoke();
                 OkSign.SetActive(true);
                 StartCoroutine(GameManager.Instance.DelayTime(1.5f, () =>
                 {
