@@ -121,6 +121,9 @@ public class MicRecorder : MonoBehaviour
                 Debug.Log("인식된 텍스트: " + res.text);
 
                 CheckPhobiaSymtom(res.text);
+
+                // 유저 발화 Log 업데이트
+                EventHub.actionUpdatedUserSpeaking?.Invoke(res.text);
             }
             else
             {

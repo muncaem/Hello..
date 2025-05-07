@@ -12,8 +12,15 @@ public class GptRequester : MonoBehaviour
     //public static Action<string, bool> actionGptReceived; // gpt 응답 이후 대리자 호출
     private string userId = "user_001";  // 유저 고유 ID (추후 로그인 시스템과 연동 예정)
 
+    public enum GPTRequestType
+    {
+        Resident,
+        Secretary
+    }
+
     /// Flask에서 실행 중인 서버의 주소
-    private string apiUrl = "http://127.0.0.1:5000/generate";
+    private string residentApiUrl = "http://127.0.0.1:5000/generate_resident";
+    private string secretaryApiUrl = "http://127.0.0.1:5000/generate_secretary";
 
     // 전송 요청 클래스
     [Serializable]
@@ -32,7 +39,7 @@ public class GptRequester : MonoBehaviour
     // AI 전화 시작 함수
     /// 외부에서 호출할 함수 (프롬프트를 받아 코루틴 실행)
     /// <param name="prompt">AI에게 보낼 시나리오 또는 질문 내용</param>
-    public void RequestGPT(string prompt)
+    public void RequestGPT(string prompt, GPTRequestType type = GPTRequestType.Resident)
     {
         if (string.IsNullOrWhiteSpace(prompt))
         {
@@ -42,11 +49,12 @@ public class GptRequester : MonoBehaviour
         }
 
         // 코루틴으로 GPT에 요청 시작
-        StartCoroutine(SendPrompt(prompt));
+        string apiUrl = type == GPTRequestType.Resident ? residentApiUrl : secretaryApiUrl;
+        StartCoroutine(SendPrompt(prompt, apiUrl));
     }
     /// 실제로 GPT 서버에 POST 요청을 보내는 함수
     /// <param name="prompt">GPT에게 전달할 메시지</param>
-    IEnumerator SendPrompt(string prompt)
+    IEnumerator SendPrompt(string prompt, string apiUrl)
     {
         // JSON 형식으로 prompt 감싸기
         //string json = "{\"prompt\":\"" + prompt + "\"}";
@@ -81,10 +89,21 @@ public class GptRequester : MonoBehaviour
 
             string comment = res.reply; // 변환한 응답
 
-            // 종료 키워드 체크 및 매니저에게 델리게이트
-            EventHub.actionGptReceived?.Invoke(comment, AITalkEndCheck(comment));
+            if (comment.StartsWith("[비서]"))
+            {
+                EventHub.actionGetSecretaryReply?.Invoke(comment);
+                Debug.Log("<color=orange>비서 GPT 응답</color> 받음: " + comment);
+            }
+            else
+            {
+                // 종료 키워드 체크 및 매니저에게 델리게이트
+                EventHub.actionGptReceived?.Invoke(comment, AITalkEndCheck(comment));
 
-            Debug.Log("GPT 응답 받음: " + comment);
+                Debug.Log("<color=blue>주민 GPT 응답</color> 받음: " + comment);
+
+                // AI 발화 Log 업데이트
+                EventHub.actionUpdatedAISpeaking?.Invoke(comment);
+            }
         }
         else
         {

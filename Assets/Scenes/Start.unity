@@ -1552,7 +1552,7 @@ MonoBehaviour:
   m_FontData:
     m_Font: {fileID: 12800000, guid: 75fc2434b0f8c8a4895998cd08963f23, type: 3}
     m_FontSize: 20
-    m_FontStyle: 1
+    m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 2
     m_MaxSize: 40
@@ -3298,7 +3298,7 @@ MonoBehaviour:
   m_FontData:
     m_Font: {fileID: 12800000, guid: 75fc2434b0f8c8a4895998cd08963f23, type: 3}
     m_FontSize: 30
-    m_FontStyle: 1
+    m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 3
     m_MaxSize: 50
@@ -3378,7 +3378,7 @@ MonoBehaviour:
   m_FontData:
     m_Font: {fileID: 12800000, guid: 75fc2434b0f8c8a4895998cd08963f23, type: 3}
     m_FontSize: 30
-    m_FontStyle: 1
+    m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 3
     m_MaxSize: 50
@@ -4657,7 +4657,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   numberField: {fileID: 0}
-  complaintMsgIcon: {fileID: 1190955924}
+  complaintMsgIcon: {fileID: 0}
   complaintScreenText:
   - {fileID: 0}
 --- !u!1 &1100034145
@@ -5022,7 +5022,7 @@ MonoBehaviour:
   m_FontData:
     m_Font: {fileID: 12800000, guid: 75fc2434b0f8c8a4895998cd08963f23, type: 3}
     m_FontSize: 30
-    m_FontStyle: 1
+    m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 3
     m_MaxSize: 50
@@ -6018,7 +6018,7 @@ MonoBehaviour:
   m_FontData:
     m_Font: {fileID: 12800000, guid: 75fc2434b0f8c8a4895998cd08963f23, type: 3}
     m_FontSize: 30
-    m_FontStyle: 1
+    m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 3
     m_MaxSize: 50
@@ -7910,7 +7910,7 @@ MonoBehaviour:
   m_FontData:
     m_Font: {fileID: 12800000, guid: 75fc2434b0f8c8a4895998cd08963f23, type: 3}
     m_FontSize: 30
-    m_FontStyle: 1
+    m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 3
     m_MaxSize: 50

@@ -270,9 +270,13 @@ public class DiagnosisSystem : MonoBehaviour
 #endif
             EventHub.actionSurveyEnded -= ReturnFinalScore;
             EventHub.actionFirstEndedSaveScore?.Invoke();
-            Destroy(MicRecorder);
-            //Destroy(TTSChanger);
-            Destroy(transform.GetChild(0).gameObject);
+            Destroy(MicRecorder); // 초기 진단용 STT 제거
+            Destroy(transform.GetChild(0).gameObject); // 초기 진단용 TTS 제거
+
+            // 메인 노출 치료 위해 초기 진단 결과 초기화
+            preFactor = 0;
+            midFactor = 0;
+            postFactor = 0;
         }
     }
 

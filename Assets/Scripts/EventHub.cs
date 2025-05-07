@@ -85,4 +85,12 @@ public class EventHub : MonoBehaviour
     /// </summary>
     public static Action<int> actionSolvedComplaint; // 민원 처리 완료 시 호출
     public static Action actionUpdateReputation; // 평판 update 시 호출
+
+
+    /// <summary>
+    /// AI 커뮤니케이션 솔루션 관련
+    /// </summary>
+    public static Action<string> actionUpdatedUserSpeaking; // 유저 발화 로그 업데이트
+    public static Action<string> actionUpdatedAISpeaking; // AI 발화 로그 업데이트
+    public static Action<string> actionGetSecretaryReply; // 비서 대답 Get
 }

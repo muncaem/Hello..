@@ -130,6 +130,16 @@ public class PhoneManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 전화 받기 버튼
+    /// </summary>
+    public void TakeCallButton()
+    {
+        SoundManager.instance.Clear();
+        StopAllCoroutines();
+        EventHub.actionConnectedComingCall?.Invoke();
+    }
+
+    /// <summary>
     /// 전화 끊기 버튼
     /// </summary>
     public void UnTakeCallButton()

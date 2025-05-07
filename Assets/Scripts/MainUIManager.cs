@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -74,7 +75,7 @@ public class MainUIManager : MonoBehaviour
     /// </summary>
     private void UpdateOutGoingCallValue(int val)
     {
-        if(complaintPaper.activeSelf)
+        if (complaintPaper.activeSelf)
             complaintPaper.SetActive(false);
 
         outgoingCallValue.text = val.ToString();
@@ -116,14 +117,28 @@ public class MainUIManager : MonoBehaviour
     /// </summary>
     private void ManageReputationBar()
     {
-        userReputation.size = 100 / UserData.Instance.userReputation;
+        float normalized = (float)UserData.Instance.userReputation / 100f;
+        userReputation.size = Mathf.Clamp01(normalized);
     }
 
 
     private void ManageCallPhobiaBar(int avoid, int hesitate, int after)
     {
-        avoidCallBar.size = 100 / avoid;
-        hesitateBar.size = 100 / hesitate;
-        afterRegretBar.size = 100 / after;
+        if (avoid != 0)
+        {
+            float normalized = (float)avoid / 100f;
+            avoidCallBar.size = Mathf.Clamp01(normalized);
+
+        }
+        if (hesitate != 0)
+        {
+            float normalized = (float)hesitate / 100f;
+            hesitateBar.size = Mathf.Clamp01(normalized);
+        }
+        if (after != 0)
+        {
+            float normalized = (float)after / 100f;
+            afterRegretBar.size = Mathf.Clamp01(normalized);
+        }
     }
 }
