@@ -46,13 +46,14 @@ public class ConversationManager : MonoBehaviour
         Debug.Log("StartComingConversation()");
 #endif
 
-        ScenarioData scenarioData = scenarioMaker.ScenarioMaker();
-        currentScenario = $"너는 {scenarioData.role}. {scenarioData.situation}. {scenarioData.emotion} 상태야. " +
-            $"항상 대답 맨 앞에 {scenarioData.emotionTag}태그를 붙여서 감정을 표시해.";
+        ScenarioData data = scenarioMaker.ScenarioMaker();
+        currentScenario = $"너는 {data.role}. {data.situation}. {data.emotion} 상태야. " +
+            $"{GetReputationAndSendFriendness()} " + 
+            $"항상 대답 맨 앞에 {data.emotionTag}태그를 붙여서 감정을 표시해.";
 
         // 1. GPT가 먼저 전화 시작 2. 유저 말 감지 루프는 GPT 응답 끝난 후에 시작되도록 GptRequester에서 처리
         gptRequester.RequestGPT(currentScenario); // GPT가 먼저 발화
-        currentOnlyScenarioContext = scenarioData.situation;
+        currentOnlyScenarioContext = data.situation;
 
         isConversationEnded = false;
         GlobalCallState = true;
@@ -67,12 +68,26 @@ public class ConversationManager : MonoBehaviour
         Debug.Log("StartGoingConversation()");
 #endif
         currentScenario = $"너는 {data.role}. {data.situation}. {data.emotion} 상태야. " +
+            $"{GetReputationAndSendFriendness()} " +
             $"항상 대답 맨 앞에 {data.emotionTag}태그를 붙여서 감정을 표시해.";
+        
         gptRequester.RequestGPT(currentScenario);
         currentOnlyScenarioContext = data.situation;
 
         isConversationEnded = false;
         GlobalCallState = true;
+    }
+
+    private string GetReputationAndSendFriendness()
+    {
+        float currentReputation = UserData.Instance.userReputation;
+
+        if (currentReputation > 50)
+            return "저번에 마을대표가 정말 성실하게 잘 도와줬기 때문에 약간 고마운 마음을 가지고 있어.";
+        else if (currentReputation > 30)
+            return "그 유저는 평범하게 대응했기 때문에 특별히 기대하지도, 실망하지도 않아.";
+        else
+            return "지난번에 유저가 민원을 제대로 해결하지 못해서 약간 불만을 가지고 있어. 더 강하게 이야기하려 해.";
     }
 
     // GPT 응답 후 호출됨

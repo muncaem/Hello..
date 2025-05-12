@@ -48,6 +48,8 @@ public class MainUIManager : MonoBehaviour
 
         userName.text = $"안녕하세요, {UserData.Instance.userName} 님.";
         userDetermination.text = $"{UserData.Instance.userName}님의 한 마디, {UserData.Instance.userDetermination}";
+
+        ManageReputationBar(); // 시작 시, 평판 초기화
     }
 
     /// <summary>

@@ -16,7 +16,7 @@ public class UserData : MonoBehaviour
 
     public string userName { get; set; }
     public string userDetermination { get; set; }
-    private float _userReputation = 100;
+    private float _userReputation = 50;
     public float userReputation
     {
         get => _userReputation;
