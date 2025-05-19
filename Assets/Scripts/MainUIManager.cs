@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -28,9 +29,17 @@ public class MainUIManager : MonoBehaviour
     [SerializeField] private Scrollbar avoidCallBar;
     [SerializeField] private Scrollbar hesitateBar;
     [SerializeField] private Scrollbar afterRegretBar;
+    [SerializeField] private Scrollbar firstAvoidCallBar;
+    [SerializeField] private Scrollbar firstHesitateBar;
+    [SerializeField] private Scrollbar firstAfterRegretBar;
+    [SerializeField] private Scrollbar finalAvoidCallBar;
+    [SerializeField] private Scrollbar finalHesitateBar;
+    [SerializeField] private Scrollbar finalAfterRegretBar;
 
     [Header("")]
     [SerializeField] private Text dayText;
+    [SerializeField] private GameObject GameFadeOutObj;
+    [SerializeField] private GameObject FinalMentObj;
 
 
 
@@ -42,6 +51,7 @@ public class MainUIManager : MonoBehaviour
         EventHub.actionUpdatedScenario += CreateComplaintPapers; // 송신 시나리오 완성 시, 호출됨
         EventHub.actionUpdateReputation += ManageReputationBar; // 민원 처리 시, up/down
         EventHub.actionUpdatePhobiaBar += ManageCallPhobiaBar;
+        EventHub.actionSetFinalStatus += SetFinalStatus; // 게임 종료 시 결과 Status 표시
 
         complaintPaper_content = complaintPaper.transform.GetChild(0).GetComponent<Text>();
         complaintPaper_number = complaintPaper.transform.GetChild(1).GetComponent<Text>();
@@ -142,5 +152,46 @@ public class MainUIManager : MonoBehaviour
             float normalized = (float)after / 100f;
             afterRegretBar.size = Mathf.Clamp01(normalized);
         }
+    }
+
+    private void SetFinalStatus(int a1, int m1, int p1, int a2, int m2, int p2)
+    {
+        GameFadeOutObj.SetActive(true);
+        StartCoroutine(GameManager.Instance.DelayTime(2f, () =>
+        {
+            FinalMentObj.SetActive(true);
+            if (a1 != 0)
+            {
+                float normalized = (float)a1 / 100f;
+                firstAvoidCallBar.size = Mathf.Clamp01(normalized);
+
+            }
+            if (m1 != 0)
+            {
+                float normalized = (float)m1 / 100f;
+                firstHesitateBar.size = Mathf.Clamp01(normalized);
+            }
+            if (p1 != 0)
+            {
+                float normalized = (float)p1 / 100f;
+                firstAfterRegretBar.size = Mathf.Clamp01(normalized);
+            }
+            if (a2 != 0)
+            {
+                float normalized = (float)a2 / 100f;
+                finalAvoidCallBar.size = Mathf.Clamp01(normalized);
+
+            }
+            if (m2 != 0)
+            {
+                float normalized = (float)m2 / 100f;
+                finalHesitateBar.size = Mathf.Clamp01(normalized);
+            }
+            if (p2 != 0)
+            {
+                float normalized = (float)p2 / 100f;
+                finalAfterRegretBar.size = Mathf.Clamp01(normalized);
+            }
+        }));
     }
 }

@@ -78,6 +78,8 @@ public class EventHub : MonoBehaviour
     public static Action actionUpdatedDay; // 하루가 끝났을 때 호출
     public static Action actionReachedCallGap; // Call Gap 도달 시마다 호출
     public static Action actionEndedDayTime; // 하루 치 시간 모두 소모함과 동시에 전화가 끝났을 경우 호출
+    public static Action actionEndGame; // 게임 종료
+    public static Action<int, int, int, int, int, int> actionSetFinalStatus; // 게임 종료 시, 포비아 상태 세팅
 
 
     /// <summary>

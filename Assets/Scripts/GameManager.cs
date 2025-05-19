@@ -16,13 +16,18 @@ public class GameManager : MonoBehaviour
 
     public int day { get; private set; } // 누적된 날짜
     [SerializeField] private float secondsPerDay = 180; // 하루에 주어진 시간
+    [SerializeField] private int maxDay = 3; // 인게임 최종 날짜
     private float dayCallGap;
     private float[] dayCallGapRange = { 25, 35 }; // 하루에 전화 오는 간격
 
-    //public static Action actionUpdatedDay;
-    //public static Action actionUpdatedCall;
-    //public static Action actionEndedDayTime;
     public static Action actionChangedScene; // Scene Change Follow
+
+    /// <summary>
+    /// 테스트용 - Skip Day Button 활성화 관련
+    private int testButtonAccess = 0;
+    private Button SkipButton;
+    /// </summary>
+
 
     private void Awake()
     {
@@ -84,23 +89,17 @@ public class GameManager : MonoBehaviour
     {
         if (curSceneNumb == 1 && canPlayTime)
             DayCount();
+
+#if UNITY_EDITOR
+        /// 테스트용 - Skip Day Button 활성화 관련
+        TestAccess();
+#endif
     }
+
     // 날짜 카운트 기능
     private void DayCount()
     {
         time += Time.deltaTime;
-
-        //gapTime += Time.deltaTime;
-
-        //if (gapTime >= dayCallGap && !ConversationManager.GlobalCallState)
-        //{
-        //    // 하루 당 수신 call gap 지날 때마다 시간 알림 델리게이트
-        //    actionUpdatedCall?.Invoke();
-
-        //    // 다음 call gap 설정
-        //    SetDayCallGap();
-        //    gapTime = 0;
-        //}
 
         // 전화 중이 아니면 gapTime 쌓기
         if (!ConversationManager.GlobalCallState)
@@ -118,8 +117,8 @@ public class GameManager : MonoBehaviour
         }
 
         // 하루 종료 조건
-        if (time >= secondsPerDay && ConversationManager.GlobalCallState == false) 
-            /*|| ConversationManager. // 하루 치 통화 할당량 다 채웠을 경우*/
+        if (time >= secondsPerDay && ConversationManager.GlobalCallState == false)
+        /*|| ConversationManager. // 하루 치 통화 할당량 다 채웠을 경우*/
         {
             Debug.Log("time >= secondsPerDay && ConversationManager.GlobalCallState == false");
             // 주어진 하루 시간을 모두 사용하거나 할당량 채웠을 경우 마무리 설문 진행
@@ -133,11 +132,20 @@ public class GameManager : MonoBehaviour
     {
         if (canPlayTime == false && curSceneNumb == 1)
         {
-            EventHub.actionUpdatedDay?.Invoke();
-
             time = 0;
             gapTime = 0;
             day += 1;
+
+            if (day >= 4)
+            {
+                EventHub.actionEndGame?.Invoke();
+#if UNITY_EDITOR
+                print("<color=red>End Day</color>");
+#endif
+                return;
+            }
+
+            EventHub.actionUpdatedDay?.Invoke();
 
             canPlayTime = true;
             canUpdateDay = false;
@@ -151,6 +159,7 @@ public class GameManager : MonoBehaviour
     {
         dayCallGap = UnityEngine.Random.Range(dayCallGapRange[0], dayCallGapRange[1] + 1);
     }
+
 
     // 딜레이 코루틴
     public IEnumerator DelayTime(float delay, System.Action onComplete)
@@ -174,5 +183,29 @@ public class GameManager : MonoBehaviour
         }
 
         onComplete?.Invoke();
+    }
+
+    /// <summary>
+    /// 개발용 DaySkip Tester
+    /// </summary>
+    public void SkipDay()
+    {
+        canPlayTime = false;
+        UpdateDayTimer();
+        //print($"오늘 날짜 {day}");
+    }
+    private void TestAccess()
+    {
+        if (Input.GetKeyDown(KeyCode.F11))
+        {
+            if (!SkipButton)
+                SkipButton = GameObject.FindWithTag("ForTest").transform.GetChild(0).GetComponent<Button>();
+            testButtonAccess++;
+            if (testButtonAccess >= 3 && SkipButton)
+            {
+                SkipButton.onClick.AddListener(SkipDay);
+                SkipButton.gameObject.SetActive(true);
+            }
+        }
     }
 }

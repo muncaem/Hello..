@@ -76,6 +76,8 @@ public class DiagnosisSystem : MonoBehaviour
 
         EventHub.actionConnectedComingCall += TakeCallDiagnosis;
         EventHub.actionDisconnectedComingCall += UnTakeCallDiagnosis;
+
+        EventHub.actionEndGame += FinalDiagnosticResults;
     }
 
     private void OnChangedScene()
@@ -146,27 +148,11 @@ public class DiagnosisSystem : MonoBehaviour
             inCompingCall = totalCallValue - outGoingCall;
         }
 
+#if UNITY_EDITOR
         Debug.Log($"outgoingcall: {outGoingCall}, incomingcall: {inCompingCall}");
-
+#endif
 
         EventHub.actionUpdatedOutGoingValue?.Invoke(outGoingCall);
-
-        //// 첫 시작 call
-        //actionStartIncomingCall?.Invoke();
-
-        //StartCoroutine(GameManager.Instance.DelayTime(1.5f, () =>
-        //{
-        //    if (!isCalled)
-        //    {
-        //        actionStartIncomingCall?.Invoke();
-        //        if (waitCallCoroutine != null)
-        //        {
-        //            StopCoroutine(waitCallCoroutine);
-        //            waitCallCoroutine = null;
-        //        }
-        //        waitCallCoroutine = StartCoroutine(WaitForUserCallResponse());
-        //    }
-        //}));
     }
 
 
@@ -339,5 +325,15 @@ public class DiagnosisSystem : MonoBehaviour
             //MicRecorder.actionMicRecorded -= OnRecordEnded;
             return;
         }
+    }
+
+    private void FinalDiagnosticResults()
+    {
+#if UNITY_EDITOR
+        print($"초기 유저 진단 결과: {UserData.Instance.firstPreFactor}, {UserData.Instance.firstMidFactor}, {UserData.Instance.firstPostFactor}");
+        print($"마지막 최종 진단 결과: {preFactor}, {midFactor}, {postFactor}");
+#endif
+        EventHub.actionSetFinalStatus?.Invoke(UserData.Instance.firstPreFactor, UserData.Instance.firstMidFactor, UserData.Instance.firstPostFactor,
+            preFactor, midFactor, postFactor);
     }
 }
