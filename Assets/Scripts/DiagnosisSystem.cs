@@ -242,6 +242,14 @@ public class DiagnosisSystem : MonoBehaviour
         }
 
         EventHub.actionUpdatePhobiaBar?.Invoke(preFactor, midFactor, postFactor);
+
+        // 초기 진단 이후 1일차 데이터 저장
+        if (GameManager.Instance.day == 1)
+        {
+            UserData.Instance.mainFirstDayPre = preFactor;
+            UserData.Instance.mainFirstDayMid = midFactor;
+            UserData.Instance.mainFirstDayPost = postFactor;
+        }
     }
     private void ReturnFinalScore()
     {
@@ -330,10 +338,10 @@ public class DiagnosisSystem : MonoBehaviour
     private void FinalDiagnosticResults()
     {
 #if UNITY_EDITOR
-        print($"초기 유저 진단 결과: {UserData.Instance.firstPreFactor}, {UserData.Instance.firstMidFactor}, {UserData.Instance.firstPostFactor}");
+        print($"1일차 유저 진단 결과: {UserData.Instance.mainFirstDayPre}, {UserData.Instance.mainFirstDayMid}, {UserData.Instance.mainFirstDayPost}");
         print($"마지막 최종 진단 결과: {preFactor}, {midFactor}, {postFactor}");
 #endif
-        EventHub.actionSetFinalStatus?.Invoke(UserData.Instance.firstPreFactor, UserData.Instance.firstMidFactor, UserData.Instance.firstPostFactor,
+        EventHub.actionSetFinalStatus?.Invoke(UserData.Instance.mainFirstDayPre, UserData.Instance.mainFirstDayMid, UserData.Instance.mainFirstDayPost,
             preFactor, midFactor, postFactor);
     }
 }

@@ -27,6 +27,12 @@ public class UserData : MonoBehaviour
     public int firstMidFactor { get; set; }
     public int firstPostFactor { get; set; }
 
+
+    public int mainFirstDayPre { get; set; }
+    public int mainFirstDayMid { get; set; }
+    public int mainFirstDayPost { get; set; }
+
+
     public int lastPreFactor { get; set; }
     public int lastMidFactor { get; set; }
     public int lastPostFactor { get; set; }
