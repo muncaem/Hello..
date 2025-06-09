@@ -71,6 +71,7 @@ public class GameManager : MonoBehaviour
         {
             StartCoroutine(InitDay());
             actionChangedScene?.Invoke();
+            SoundManager.instance.Play("street-ambience", 0.5f, SoundType.BGM);
         }
     }
 

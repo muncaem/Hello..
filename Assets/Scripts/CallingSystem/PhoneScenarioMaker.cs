@@ -84,17 +84,10 @@ public class PhoneScenarioMaker : MonoBehaviour
 
 
     //프롬프트 전달용 시나리오
-    public /*string*/ScenarioData ScenarioMaker()
+    public ScenarioData ScenarioMaker()
     {
-        //string role = roles[Random.Range(0, roles.Count)];
-        //string situation = situations[Random.Range(0, situations.Count)];
-
         List<string> emotionKeys = new List<string>(emotionMap.Keys);
         string emotion = emotionKeys[Random.Range(0, emotionKeys.Count)];
-        //string emotionTag = emotionMap[emotion];
-
-        //string scenario = $"너는 {role}. {situation}. {emotion} 상태야. 항상 대답 맨 앞에 {emotionTag}태그를 붙여서 감정을 표시해.";
-        //Debug.Log("생성된 시나리오: " + scenario);
 
         return new ScenarioData
         {
@@ -103,6 +96,5 @@ public class PhoneScenarioMaker : MonoBehaviour
             emotion = emotion,
             emotionTag = emotionMap[emotion]
         };
-        //return scenario;
     }
 }

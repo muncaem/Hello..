@@ -72,6 +72,10 @@ public class SolveComplaint : MonoBehaviour
         }
 
         complaintNumberPair.Add(Tuple.Create(currIndex++, matchInNumb));
+
+#if UNITY_EDITOR
+        print($"matchInNumb {matchInNumb}");
+#endif
     }
 
     /// <summary>
@@ -80,7 +84,10 @@ public class SolveComplaint : MonoBehaviour
     public void PushedKeypad()
     {
         int inputNumber = int.Parse(EventSystem.current.currentSelectedGameObject.name);
-        
+
+#if UNITY_EDITOR
+        print($"inputNumber {inputNumber}");
+#endif
         for (int i = 0; i < complaintNumberPair.Count; i++)
         {
             if (complaintNumberPair[i].Item1 == inputNumber)

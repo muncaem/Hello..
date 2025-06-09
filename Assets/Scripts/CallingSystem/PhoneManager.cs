@@ -97,6 +97,8 @@ public class PhoneManager : MonoBehaviour
         {
             RingingCall();
             OpenCallingScreen();
+
+            complaintMsgIcon = this.transform.GetChild(0).GetChild(4).gameObject;
         }
     }
 
@@ -162,19 +164,14 @@ public class PhoneManager : MonoBehaviour
         CallingScreen.SetActive(false);
         InCallScreen.SetActive(false);
         KeypadScreen.SetActive(false);
-
-        if (GameManager.Instance.curSceneNumb == 0)
-        {
-            Debug.Log("<color=yellow>여기 아예 안들어갈 것 같은데 OpenHomeScreen 2번째 if문 </color>");
-            EventHub.actionStartIncomingCall -= RingingCall;
-            return;
-        }
     }
 
 
     private void ActiveComplaintMessage(string content)
     {
         // 민원처리 완료 시 비활성화 필요
+        if (!complaintMsgIcon)
+            complaintMsgIcon = this.transform.GetChild(0).GetChild(4).gameObject;
         complaintMsgIcon.SetActive(true);
         complaintScreenText[activeComplaintText].gameObject.SetActive(true);
         complaintScreenText[activeComplaintText++].text = content;
@@ -295,9 +292,9 @@ public class PhoneManager : MonoBehaviour
             numberField.text = "";
         }
         // 전화 번호 다를 경우
-        else 
-        { 
-        
+        else
+        {
+
         }
     }
 
@@ -380,9 +377,11 @@ public class PhoneManager : MonoBehaviour
 #if UNITY_EDITOR
         Debug.Log($"초기 진단 종료 - 유저 이름: {UserData.Instance.userName}, 각오 한마디: {UserData.Instance.userDetermination}");
 #endif
-        //EventHub.actionEndedFadeIn -= OpenCallingScreen;
-        //DiagnosisSystem.actionFirstTestUnCall -= FirstTestUnCallSurvey;
-        //DiagnosisSystem.actionFirstCallEndedCall -= FirstTestCallSurvey;
+
+        StartCoroutine(GameManager.Instance.DelayTime(2, () =>
+        {
+            EmptyScreen.SetActive(false);
+        }));
     }
 
 
@@ -395,6 +394,8 @@ public class PhoneManager : MonoBehaviour
         EventHub.actionStartIncomingCall -= OpenCallingScreen;
         EventHub.actionEndedCallBySelect -= OpenHomeScreen;
         EventHub.actionStartIncomingCall -= RingingCall;
+
+        EventHub.actionUpdateComplaintMsg -= ActiveComplaintMessage;
 
         EventHub.actionEndedRealCallbySilence -= OpenUnCallbySilenceSurvey;
         EventHub.actionEndedCallBySpeak -= OpenHomeScreen;

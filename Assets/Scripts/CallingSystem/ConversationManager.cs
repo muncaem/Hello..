@@ -149,7 +149,7 @@ public class ConversationManager : MonoBehaviour
             }
 
             GlobalCallState = false; // AI의 마지막 말로 끝까지 끝났을 때 체크
-            isConversationEnded = true;
+            isConversationEnded = false;
             return;
         }
 

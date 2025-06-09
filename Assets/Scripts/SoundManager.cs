@@ -41,8 +41,11 @@ public class SoundManager : MonoBehaviour
     {
         foreach (AudioSource audioSource in audioSources)
         {
-            audioSource.clip = null;
-            audioSource.Stop();
+            if (audioSource.name == "bell")
+            {
+                audioSource.clip = null;
+                audioSource.Stop();
+            }
         }
     }
 
@@ -70,7 +73,7 @@ public class SoundManager : MonoBehaviour
     }
 
     // 오디오 소스 플레이
-    public void Play(string name, float volume = 0.8f, SoundType type = SoundType.SFX)
+    public void Play(string name, float volume = 0.5f, SoundType type = SoundType.SFX)
     {
         AudioClip audioClip;
         try

@@ -83,6 +83,9 @@ public class SecretaryCaller : MonoBehaviour
     /// </summary>
     public void CallToSecretary()
     {
+#if UNITY_EDITOR
+        print($"CallToSecretary");
+#endif
         if (ConversationManager.GlobalCallState == false)
             GPT.RequestGPT(GetFormatConversationForAssist(), GptRequester.GPTRequestType.Secretary);
     }

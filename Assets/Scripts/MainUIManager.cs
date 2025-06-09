@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class MainUIManager : MonoBehaviour
@@ -10,15 +11,11 @@ public class MainUIManager : MonoBehaviour
     [Header("Regarded_Complaint_UI")]
     // 오늘의 송신해야 할 민원 횟수 -> 줄어들 때마다 update필요
     [SerializeField] private Text outgoingCallValue;
-    // 맵에 동적으로 띄울 민원 아이콘 -> 줄어들 때마다 update 필요 (오브젝트 풀링 쓸지 고민)
-    //[SerializeField] private GameObject complaintObjIcon;
-    //private int activeIconObjVal;
     // 송신해야할 민원 아이콘 누르면 띄울 민원 내용 및 유저 전화번호 담긴 오브젝트 -> 하나 클리어 할 때마다 내용 바뀌게
     [SerializeField] private GameObject complaintPaper;
+
     public static Text complaintPaper_content { get; private set; }
     private Text complaintPaper_number;
-    //private int activePaperObjVal = -1; // 활성화 할 민원 페이퍼 오브젝트 개수
-    //private int currOutGoingIdx = -1;// 현재 진행 중인 송신 민원 인덱스
 
     [Header("Regarded_State_UI")]
     [SerializeField] private Text userName;
@@ -71,18 +68,6 @@ public class MainUIManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 하루 치 민원량 (6개) 동적으로 맵에 랜덤위치로 띄우기 -> 오브젝트 풀 이용
-    /// </summary>
-    /// <param name="val"></param>
-    private void SetCallIcon(int val)
-    {
-        //for (int i = 0; i < val; i++)
-        //{
-        //    Instantiate(complaintObjIcon);
-        //}
-    }
-
-    /// <summary>
     /// 송신해야할 민원 횟수 UI 세팅 및 줄어들 때마다 업데이트
     /// </summary>
     private void UpdateOutGoingCallValue(int val)
@@ -108,18 +93,6 @@ public class MainUIManager : MonoBehaviour
         complaintPaper_content.text = content;
         complaintPaper_number.text = phoneNumb;
     }
-
-
-    /// <summary>
-    /// 송신할 민원 버튼 누를 경우 실행
-    /// </summary>
-    bool isOpenPaper = false;
-    public void OpenCurrComplanitPaper()
-    {
-        isOpenPaper = !isOpenPaper;
-        complaintPaper.SetActive(isOpenPaper);
-    }
-
 
     /// <summary>
     /// 민원 처리 완료되었을 경우, 평판 관리
