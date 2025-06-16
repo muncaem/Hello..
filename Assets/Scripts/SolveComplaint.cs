@@ -90,7 +90,7 @@ public class SolveComplaint : MonoBehaviour
 #endif
         for (int i = 0; i < complaintNumberPair.Count; i++)
         {
-            if (complaintNumberPair[i].Item1 == inputNumber)
+            if (complaintNumberPair[i].Item2 == inputNumber)
             {
                 EventHub.actionSolvedComplaint?.Invoke(i);
                 UserData.Instance.userReputation += 16;

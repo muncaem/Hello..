@@ -96,6 +96,6 @@ public class SecretaryCaller : MonoBehaviour
     /// <param name="comment"></param>
     private void PlayTTS(string comment)
     {
-        TTS.Speak(comment, "ko-KR-Neural2-C");
+        TTS.NormalSpeak(comment, true);
     }
 }

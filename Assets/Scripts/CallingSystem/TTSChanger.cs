@@ -33,11 +33,11 @@ public class TTSChanger : MonoBehaviour
 
         StartCoroutine(RequestTTS(text, voice, pitch, speakingRate));
     }
-    public void NormalSpeak(string text)
+    public void NormalSpeak(string text, bool isJustTalk = false)
     {
-        StartCoroutine(RequestTTS(text, "ko-KR-Neural2-C", 1, 1));
+        StartCoroutine(RequestTTS(text, "ko-KR-Neural2-C", 1, 1, isJustTalk));
     }
-    private IEnumerator RequestTTS(string text, string voice, float pitch, float speakingRate)
+    private IEnumerator RequestTTS(string text, string voice, float pitch, float speakingRate, bool isJustTalk = false)
     {
         WWWForm form = new WWWForm();
         form.AddField("text", text);
@@ -57,7 +57,9 @@ public class TTSChanger : MonoBehaviour
                 audioSource.Play();
 
                 yield return new WaitWhile(() => audioSource.isPlaying);
-                EventHub.actionTTSEnded?.Invoke();
+
+                if (!isJustTalk) // 대화 상황일 경우만 TTSEnded 처리 (비서 통화 시, 예외)
+                    EventHub.actionTTSEnded?.Invoke();
             }
             else
             {

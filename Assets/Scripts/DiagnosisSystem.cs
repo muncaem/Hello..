@@ -168,7 +168,7 @@ public class DiagnosisSystem : MonoBehaviour
     private void InComingCall()
     {
         // 전화 중이면 return
-        if (isCalled) return;
+        if (isCalled || SoundManager.instance.IsPlayAudio() == false) return;
 
         // 하루 시작하자마자 n초 후 전화 오게 함
         EventHub.actionStartIncomingCall?.Invoke();

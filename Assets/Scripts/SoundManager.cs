@@ -49,6 +49,13 @@ public class SoundManager : MonoBehaviour
         }
     }
 
+    // 오디오 소스 재생 중인지 확인
+    public bool IsPlayAudio()
+    {
+        if (audioSources[(int)SoundType.SFX].isPlaying) return true;
+        else return false;
+    }
+
     // 설정된 오디오 소스 가져오기
     public AudioClip GetAudioClip(string name, SoundType type = SoundType.SFX)
     {
@@ -100,8 +107,11 @@ public class SoundManager : MonoBehaviour
         else if (type == SoundType.SFX)
         {
             AudioSource audioSource = audioSources[(int)SoundType.SFX];
+            if (audioSource.isPlaying) audioSource.Stop();
+
             audioSource.volume = volume;
-            audioSource.PlayOneShot(audioClip);
+            audioSource.clip = audioClip;
+            audioSource.Play();
         }
         else
         {

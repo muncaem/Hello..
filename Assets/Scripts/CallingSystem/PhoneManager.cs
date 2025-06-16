@@ -387,20 +387,38 @@ public class PhoneManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        EventHub.actionEndedFadeIn -= OpenCallingScreen;
+        //EventHub.actionEndedFadeIn -= OpenCallingScreen;
 
+        //EventHub.actionFirstTestUnCall -= FirstTestUnCallSurvey;
+        //EventHub.actionFirstCallEndedCall -= FirstTestCallSurvey;
+        //EventHub.actionStartIncomingCall -= OpenCallingScreen;
+        //EventHub.actionEndedCallBySelect -= OpenHomeScreen;
+        //EventHub.actionStartIncomingCall -= RingingCall;
+
+        //EventHub.actionUpdateComplaintMsg -= ActiveComplaintMessage;
+
+        //EventHub.actionEndedRealCallbySilence -= OpenUnCallbySilenceSurvey;
+        //EventHub.actionEndedCallBySpeak -= OpenHomeScreen;
+
+        //EventHub.actionEndedDayTime -= OpenEndedDaySurvey;
+        //EventHub.actionSurveyEnded -= OpenHomeScreen;
+
+        //EventHub.actionEndedDayTime -= RefreshComplaintUI;
+
+
+        EventHub.actionEndedFadeIn -= OpenCallingScreen;
         EventHub.actionFirstTestUnCall -= FirstTestUnCallSurvey;
         EventHub.actionFirstCallEndedCall -= FirstTestCallSurvey;
-        EventHub.actionStartIncomingCall -= OpenCallingScreen;
-        EventHub.actionEndedCallBySelect -= OpenHomeScreen;
         EventHub.actionStartIncomingCall -= RingingCall;
-
-        EventHub.actionUpdateComplaintMsg -= ActiveComplaintMessage;
-
+        EventHub.actionStartIncomingCall -= OpenCallingScreen;
         EventHub.actionEndedRealCallbySilence -= OpenUnCallbySilenceSurvey;
-        EventHub.actionEndedCallBySpeak -= OpenHomeScreen;
-
         EventHub.actionEndedDayTime -= OpenEndedDaySurvey;
         EventHub.actionSurveyEnded -= OpenHomeScreen;
+        EventHub.actionEndedCallBySelect -= OpenHomeScreen;
+        EventHub.actionEndedCallBySpeak -= OpenHomeScreen;
+        EventHub.actionUpdateComplaintMsg -= ActiveComplaintMessage;
+        EventHub.actionUpdatedScenario -= UpdatedCurrentOutgoingCallContent;
+        EventHub.actionSolvedComplaint -= DeactiveComplaintMessage;
+        EventHub.actionEndedDayTime -= RefreshComplaintUI;
     }
 }
